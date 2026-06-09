@@ -1,4 +1,4 @@
-const CACHE_NAME = "canastra-cache-v2"; // Mudamos a versão para forçar atualização
+const CACHE_NAME = "canastra-cache-v3";
 
 const urlsToCache = [
   "./",
@@ -8,17 +8,16 @@ const urlsToCache = [
   "./manifest.json"
 ];
 
-// instalar
+// Instalação do cache offline
 self.addEventListener("install", event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
-      // Usamos o .addAll mas aceitando que o manifest pode puxar itens externos
       return cache.addAll(urlsToCache);
-    }).then(() => self.skipWaiting()) // Força o SW novo a assumir o controle na hora
+    }).then(() => self.skipWaiting())
   );
 });
 
-// ativar
+// Ativação e limpeza de caches antigos
 self.addEventListener("activate", event => {
   event.waitUntil(
     caches.keys().then(keys => {
@@ -29,17 +28,15 @@ self.addEventListener("activate", event => {
           }
         })
       );
-    }).then(() => self.clients.claim()) // Ativa nos clientes imediatamente
+    }).then(() => self.clients.claim())
   );
 });
 
-// fetch (estratégia Network-First com Fallback para Cache - melhor para PWA em desenvolvimento)
+// Captura de requisições com estratégia Network-First (Evita falhas com links externos)
 self.addEventListener("fetch", event => {
-  // Ignora requisições de áudio do google se der problema ou foca no padrão
   event.respondWith(
     fetch(event.request)
       .then(response => {
-        // Se a rede responder, guarda uma cópia atualizada no cache
         if (response.status === 200) {
           const responseClone = response.clone();
           caches.open(CACHE_NAME).then(cache => {
@@ -49,7 +46,6 @@ self.addEventListener("fetch", event => {
         return response;
       })
       .catch(() => {
-        // Se estiver totalmente sem internet, serve o que está no cache
         return caches.match(event.request);
       })
   );

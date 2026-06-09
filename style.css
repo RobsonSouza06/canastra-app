@@ -16,18 +16,18 @@ body {
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  /* Garante que o conteúdo não fique colado ou cortado na barra de navegação do celular */
-  padding-bottom: env(safe-area-inset-bottom, 24px); 
+  /* Margem de segurança para o notch inferior de celulares modernos */
+  padding-bottom: env(safe-area-inset-bottom, 24px);
 }
 
-/* CONTAINER PRINCIPAL (LARGURA DE TELA DE CELULAR) */
+/* CONTAINER DO APP - Ocupa 100% da largura do celular */
 .app {
   width: 100%;
-  max-width: 480px; /* Largura ideal para preencher bem telas mobile */
+  max-width: 480px; 
   padding: 16px;
 }
 
-/* LISTAS (Remove os pontos pretos padrões que desalinham o app) */
+/* LISTAS (Remove os pontos padrões) */
 ul {
   list-style: none;
 }
@@ -46,20 +46,22 @@ h2 {
   margin-bottom: 8px;
 }
 
-/* INPUT */
+/* INPUT COM DESIGN DE APP */
 input {
   width: 100%;
   padding: 14px;
   border-radius: 12px;
-  border: 1px solid #334155; /* Borda sutil para dar acabamento e contraste */
+  border: 1px solid #334155;
   margin: 6px 0;
-  background: #0f172a; /* Fundo ligeiramente mais escuro que o card para destacar */
+  background: #0f172a; /* Dá profundidade dentro do card */
   color: white;
-  font-size: 16px; /* Evita que o iOS dê zoom automático ao focar no input */
-  -webkit-appearance: none; /* Remove estilização padrão de fábrica do iOS/Android */
+  font-size: 16px; /* Impede zoom automático do iOS ao clicar */
+  
+  appearance: none; /* Versão padrão para navegadores modernos */
+  -webkit-appearance: none; /* Mantido para compatibilidade com Safari/iOS */
 }
 
-/* BOTAO */
+/* BOTOES */
 button {
   width: 100%;
   padding: 14px;
@@ -71,11 +73,10 @@ button {
   background: #22c55e;
   color: white;
   cursor: pointer;
-  transition: background 0.2s ease;
 }
 
 button:active {
-  opacity: 0.9; /* Feedback visual rápido ao tocar no celular */
+  opacity: 0.8;
 }
 
 button.delete {
@@ -100,7 +101,7 @@ button.reset {
   margin-bottom: 12px;
 }
 
-/* PLACAR */
+/* PLACAR EM GRID */
 .score-board {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -126,7 +127,7 @@ button.reset {
   margin-top: 5px;
 }
 
-/* ANIMAÇÃO VENCEDOR */
+/* ANIMACAO VENCEDOR */
 .winner {
   background: #22c55e;
   color: black;
@@ -139,8 +140,8 @@ button.reset {
   100% { transform: scale(1); }
 }
 
-/* LISTA DE RODADAS E HISTÓRICO */
-#rounds li, #history list, #history li {
+/* LISTAS DE RODADAS E HISTORICO */
+#rounds li, #history li {
   background: #334155;
   padding: 12px;
   border-radius: 12px;
@@ -148,7 +149,7 @@ button.reset {
   font-size: 15px;
 }
 
-/* Alinha o texto da rodada e o botão excluir perfeitamente na mesma linha */
+/* Alinha o texto da rodada e botão de excluir na mesma linha */
 #rounds li {
   display: flex;
   justify-content: space-between;
