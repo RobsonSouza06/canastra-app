@@ -67,7 +67,7 @@ button.reset {
   margin-bottom: 12px;
 }
 
-/* 🔥 PLACAR LADO A LADO */
+/* PLACAR */
 .score-board {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -84,23 +84,28 @@ button.reset {
 
 .score-card h3 {
   margin: 0;
-  font-size: 16px;
 }
 
 .score-card p {
   font-size: 28px;
   font-weight: bold;
-  margin: 10px 0 0;
 }
 
-/* destaque vencedor */
+/* ANIMAÇÃO VENCEDOR */
 .winner {
   background: #22c55e;
   color: black;
+  animation: pulse 1s infinite;
 }
 
-/* lista */
-#rounds li {
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+/* LISTA */
+#rounds li, #history li {
   background: #334155;
   padding: 12px;
   border-radius: 12px;

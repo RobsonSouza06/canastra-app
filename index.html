@@ -2,9 +2,10 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
-
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0f172a">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -24,30 +25,30 @@
 </div>
 
 <div class="card">
-  <h2>Duplas</h2>
   <input type="text" id="name" placeholder="Nome da dupla">
   <button onclick="addPlayer()">Adicionar</button>
 </div>
 
-<!-- PLACAR EM COLUNAS -->
-<div class="score-board" id="scoreBoard"></div>
+<div id="scoreBoard" class="score-board"></div>
 
 <div class="card">
-  <h2>Nova Rodada</h2>
   <div id="roundInputs"></div>
   <button onclick="addRound()">Adicionar Rodada</button>
 </div>
 
 <div class="card">
-  <h2>Rodadas</h2>
   <ul id="rounds"></ul>
 </div>
 
-<button class="reset" onclick="resetGame()">🔄 Reiniciar Jogo</button>
+<button class="reset" onclick="resetGame()">🔄 Reiniciar</button>
+
+<div class="card">
+  <h2>Histórico</h2>
+  <ul id="history"></ul>
+</div>
 
 </div>
 
 <script src="script.js"></script>
-
 </body>
 </html>
