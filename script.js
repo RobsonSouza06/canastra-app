@@ -68,7 +68,7 @@ function renderRoundInputs() {
     row.className = "round-input-row";
     row.innerHTML = `
       <span class="round-input-label">${escHtml(p)}</span>
-      <input type="number" id="p${i}" value="0" inputmode="numeric" placeholder="0">
+      <input type="number" id="p${i}" inputmode="numeric" placeholder="0">
     `;
     div.appendChild(row);
   });
@@ -90,7 +90,7 @@ function addRound() {
 
   // Limpar inputs
   players.forEach((_, i) => {
-    document.getElementById("p" + i).value = "0";
+    document.getElementById("p" + i).value = "";
   });
 }
 
@@ -190,6 +190,12 @@ function saveHistory(name, score) {
   const history = JSON.parse(localStorage.getItem("history") || "[]");
   history.push({ name, score, date: new Date().toLocaleString("pt-BR") });
   localStorage.setItem("history", JSON.stringify(history));
+  renderHistory();
+}
+
+function clearHistory() {
+  if (!confirm("Apagar todo o histórico de partidas?")) return;
+  localStorage.removeItem("history");
   renderHistory();
 }
 

@@ -56,8 +56,11 @@
 
   <!-- HISTÓRICO -->
   <section class="card">
-    <p class="card-label">Histórico de partidas</p>
-    <ul id="history" class="history-list">
+    <div class="history-header">
+      <p class="card-label" style="margin-bottom:0">Histórico de partidas</p>
+      <button class="btn-clear-history" onclick="clearHistory()">🗑 Limpar</button>
+    </div>
+    <ul id="history" class="history-list" style="margin-top:10px">
       <li class="empty-msg">Nenhuma partida finalizada ainda.</li>
     </ul>
   </section>
