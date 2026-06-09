@@ -4,7 +4,6 @@
 }
 
 html, body {
-  height: 100%;
   margin: 0;
   padding: 0;
 }
@@ -17,6 +16,8 @@ body {
 
   display: flex;
   justify-content: center;
+  min-height: 100vh; /* Garante que o fundo cubra a tela inteira */
+  padding-bottom: env(safe-area-inset-bottom); /* Respeita a barra de navegação inferior do celular */
 }
 
 /* CONTAINER PRINCIPAL (EFEITO APP) */
@@ -46,9 +47,9 @@ input {
   padding: 14px;
   margin: 6px 0;
   border-radius: 12px;
-  border: none;
+  border: 1px solid #334155; /* Borda sutil para dar acabamento */
   font-size: 15px;
-  background: #1e293b;
+  background: #0f172a; /* Fundo levemente mais escuro que o card para destacar */
   color: white;
 }
 
@@ -68,6 +69,10 @@ button {
 
 button.delete {
   background: #ef4444;
+  width: auto; /* Faz o botão não ocupar a largura inteira dentro da lista */
+  margin-top: 0;
+  padding: 8px 12px;
+  font-size: 13px;
 }
 
 button.reset {
@@ -91,6 +96,13 @@ button.reset {
   padding: 12px;
   border-radius: 12px;
   margin-bottom: 10px;
+}
+
+/* Ajuste específico para alinhar o texto e o botão de excluir na mesma linha */
+#rounds li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 /* PLACAR */
