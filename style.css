@@ -1,113 +1,364 @@
-* {
+/* ─── RESET & BASE ─── */
+*, *::before, *::after {
   box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   background: #0f172a;
   color: #f1f5f9;
-  display: flex;
-  justify-content: center;
+  min-height: 100vh;
+  padding-bottom: env(safe-area-inset-bottom, 16px);
 }
 
+/* ─── APP WRAPPER ─── */
 .app {
   width: 100%;
-  max-width: 600px;
-  padding: 16px;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 0 16px 32px;
 }
 
-/* TITULOS */
+/* ─── HEADER ─── */
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 28px 0 20px;
+}
+
+.app-icon {
+  font-size: 28px;
+  line-height: 1;
+}
+
 h1 {
-  text-align: center;
+  font-size: 22px;
+  font-weight: 700;
+  color: #f8fafc;
+  letter-spacing: -0.3px;
 }
 
-h2 {
-  color: #94a3b8;
-  font-size: 16px;
-}
-
-/* INPUT */
-input {
-  width: 100%;
-  padding: 14px;
-  border-radius: 12px;
-  border: none;
-  margin: 6px 0;
-  background: #1e293b;
-  color: white;
-}
-
-/* BOTAO */
-button {
-  width: 100%;
-  padding: 14px;
-  border-radius: 12px;
-  border: none;
-  font-weight: bold;
-  margin-top: 10px;
-  background: #22c55e;
-  color: white;
-}
-
-button.delete {
-  background: #ef4444;
-}
-
-button.reset {
-  background: #f59e0b;
-  margin-top: 20px;
-}
-
-/* CARD */
+/* ─── CARD ─── */
 .card {
   background: #1e293b;
-  padding: 14px;
-  border-radius: 14px;
+  border-radius: 16px;
+  padding: 16px;
   margin-bottom: 12px;
 }
 
-/* PLACAR */
+.card-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-bottom: 10px;
+}
+
+/* ─── INPUTS ─── */
+input[type="text"],
+input[type="number"] {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1.5px solid #334155;
+  background: #0f172a;
+  color: #f1f5f9;
+  font-size: 16px;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  transition: border-color .2s;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus {
+  border-color: #22c55e;
+}
+
+input::placeholder {
+  color: #475569;
+}
+
+.input-row {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.input-row input {
+  flex: 1;
+}
+
+/* ─── BOTÕES ─── */
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 15px;
+  border-radius: 12px;
+  border: none;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity .15s, transform .1s;
+/* ───   -webkit-appearance: none;─── */
+}
+
+.btn:active {
+  opacity: .8;
+  transform: scale(.98);
+}
+
+.btn-primary {
+  background: #22c55e;
+  color: #052e16;
+  margin-top: 12px;
+}
+
+.btn-danger {
+  background: #ef4444;
+  color: #fff;
+}
+
+.btn-reset {
+  background: #f59e0b;
+  color: #1c1005;
+  width: 100%;
+  padding: 15px;
+  border-radius: 12px;
+  border: none;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+  transition: opacity .15s;
+}
+
+.btn-reset:active { opacity: .8; }
+
+.btn-add {
+  padding: 0;
+  width: 50px;
+  flex-shrink: 0;
+  background: #22c55e;
+  color: #052e16;
+  border: none;
+  border-radius: 12px;
+  font-size: 26px;
+  font-weight: 400;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity .15s;
+}
+
+.btn-add:active { opacity: .8; }
+
+/* ─── PLACAR ─── */
 .score-board {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
-  margin-bottom: 15px;
+  margin-bottom: 12px;
 }
 
 .score-card {
-  background: #334155;
-  padding: 16px;
+  background: #1e293b;
+  border: 1.5px solid #334155;
   border-radius: 16px;
+  padding: 18px 14px;
   text-align: center;
+  transition: border-color .3s, background .3s;
 }
 
 .score-card h3 {
-  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #94a3b8;
+  margin-bottom: 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .score-card p {
-  font-size: 28px;
-  font-weight: bold;
+  font-size: 36px;
+  font-weight: 700;
+  color: #f8fafc;
+  line-height: 1;
 }
 
-/* ANIMAÇÃO VENCEDOR */
-.winner {
-  background: #22c55e;
-  color: black;
-  animation: pulse 1s infinite;
+.score-card.winner {
+  background: #14532d;
+  border-color: #22c55e;
+  animation: pulse 1.4s ease-in-out infinite;
 }
+
+.score-card.winner h3 { color: #86efac; }
+.score-card.winner p  { color: #22c55e; }
 
 @keyframes pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-  100% { transform: scale(1); }
+  0%, 100% { transform: scale(1); }
+  50%       { transform: scale(1.03); }
 }
 
-/* LISTA */
-#rounds li, #history li {
-  background: #334155;
-  padding: 12px;
-  border-radius: 12px;
+/* ─── INPUTS DE RODADA ─── */
+.round-input-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   margin-bottom: 10px;
 }
+
+.round-input-label {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 500;
+  color: #cbd5e1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.round-input-row input {
+  width: 110px;
+  flex-shrink: 0;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 600;
+  padding: 12px 8px;
+}
+
+/* ─── LISTA DE RODADAS ─── */
+.round-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.round-list li {
+  background: #0f172a;
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 14px;
+  color: #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.round-list li span {
+  flex: 1;
+}
+
+.btn-delete {
+  background: #7f1d1d;
+  color: #fca5a5;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: opacity .15s;
+}
+
+.btn-delete:active { opacity: .7; }
+
+/* ─── HISTÓRICO ─── */
+.history-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.history-list li {
+  background: #0f172a;
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 14px;
+  color: #94a3b8;
+  line-height: 1.5;
+}
+
+.history-list li strong {
+  color: #22c55e;
+  font-weight: 700;
+}
+
+.empty-msg {
+  color: #475569 !important;
+  font-style: italic;
+  background: transparent !important;
+  padding: 4px 0 !important;
+}
+
+/* ─── MODAL VENCEDOR ─── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.7);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 100;
+  padding: 0 12px 20px;
+  padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+}
+
+.modal-overlay.hidden { display: none; }
+
+.modal {
+  background: #1e293b;
+  border-radius: 24px 24px 16px 16px;
+  padding: 28px 20px 20px;
+  width: 100%;
+  max-width: 480px;
+  text-align: center;
+}
+
+.modal-trophy { font-size: 56px; margin-bottom: 12px; }
+
+.modal-title {
+  font-size: 14px;
+  color: #64748b;
+  margin-bottom: 4px;
+}
+
+.modal-winner {
+  font-size: 26px;
+  font-weight: 700;
+  color: #22c55e;
+  margin-bottom: 6px;
+}
+
+.modal-score {
+  font-size: 15px;
+  color: #94a3b8;
+  margin-bottom: 24px;
+}
+
+.modal .btn { margin-bottom: 8px; }
+.modal .btn:last-child { margin-bottom: 0; }

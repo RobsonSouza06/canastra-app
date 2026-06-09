@@ -2,50 +2,65 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <!-- PWA -->
-  <link rel="manifest" href="manifest.json">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#0f172a">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
-
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Canastra">
   <title>Canastra Score</title>
-
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <div class="app">
 
-<h1>🃏 Canastra Score</h1>
+  <header class="app-header">
+    <span class="app-icon">🃏</span>
+    <h1>Canastra Score</h1>
+  </header>
 
-<div class="card">
-  <input type="number" id="target" placeholder="Pontuação para vencer (ex: 3000)">
-</div>
+  <!-- CONFIGURAÇÃO -->
+  <section class="card">
+    <p class="card-label">Pontuação para vencer</p>
+    <input type="number" id="target" placeholder="Ex: 3000" inputmode="numeric">
+  </section>
 
-<div class="card">
-  <input type="text" id="name" placeholder="Nome da dupla">
-  <button onclick="addPlayer()">Adicionar</button>
-</div>
+  <!-- ADICIONAR DUPLA -->
+  <section class="card">
+    <p class="card-label">Adicionar dupla / jogador</p>
+    <div class="input-row">
+      <input type="text" id="name" placeholder="Nome da dupla">
+      <button class="btn-add" onclick="addPlayer()">+</button>
+    </div>
+  </section>
 
-<div id="scoreBoard" class="score-board"></div>
+  <!-- PLACAR -->
+  <div id="scoreBoard" class="score-board"></div>
 
-<div class="card">
-  <div id="roundInputs"></div>
-  <button onclick="addRound()">Adicionar Rodada</button>
-</div>
+  <!-- RODADA -->
+  <section class="card" id="round-section" style="display:none">
+    <p class="card-label">Pontos da rodada</p>
+    <div id="roundInputs"></div>
+    <button class="btn btn-primary" onclick="addRound()">✔ Adicionar Rodada</button>
+  </section>
 
-<div class="card">
-  <ul id="rounds"></ul>
-</div>
+  <!-- LISTA DE RODADAS -->
+  <section class="card" id="rounds-section" style="display:none">
+    <p class="card-label">Rodadas</p>
+    <ul id="rounds" class="round-list"></ul>
+  </section>
 
-<button class="reset" onclick="resetGame()">🔄 Reiniciar</button>
+  <!-- BOTÃO REINICIAR -->
+  <button class="btn btn-reset" onclick="resetGame()">🔄 Reiniciar Jogo</button>
 
-<div class="card">
-  <h2>Histórico</h2>
-  <ul id="history"></ul>
-</div>
+  <!-- HISTÓRICO -->
+  <section class="card">
+    <p class="card-label">Histórico de partidas</p>
+    <ul id="history" class="history-list">
+      <li class="empty-msg">Nenhuma partida finalizada ainda.</li>
+    </ul>
+  </section>
 
 </div>
 
