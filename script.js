@@ -170,7 +170,7 @@ function createWinnerModal() {
       <div class="modal-divider"></div>
       <button class="btn btn-primary" onclick="rematchGame()">🔁 Nova partida — mesmas duplas</button>
       <button class="btn btn-new-players" onclick="newPlayersGame()">👥 Novos jogadores</button>
-      <button class="btn btn-ghost" onclick="closeWinnerModal()">Ver placar final</button>
+      <button class="btn btn-ghost" onclick="closeWinnerModal(true)">Ver placar final</button>
     </div>
   `;
   document.body.appendChild(overlay);
@@ -183,12 +183,14 @@ function showWinnerModal(name, score, target) {
   document.getElementById("winner-overlay").classList.remove("hidden");
 }
 
-function closeWinnerModal() {
+function closeWinnerModal(showFinal) {
   document.getElementById("winner-overlay").classList.add("hidden");
+  if (showFinal) showPostgame();
 }
 
 // Mesmas duplas — zera só as rodadas, mantém histórico
 function rematchGame() {
+  hidePostgame();
   rounds = [];
   scores = players.map(() => 0);
   saveGame();
@@ -201,6 +203,7 @@ function rematchGame() {
 
 // Novos jogadores — reseta tudo exceto histórico
 function newPlayersGame() {
+  hidePostgame();
   players = [];
   rounds  = [];
   scores  = [];
@@ -211,6 +214,7 @@ function newPlayersGame() {
   document.getElementById("target").value          = "";
   document.getElementById("name").value            = "";
   closeWinnerModal();
+  hidePostgame();
   toggleSections();
 }
 
@@ -262,6 +266,7 @@ function resetGame() {
   document.getElementById("name").value            = "";
 
   closeWinnerModal();
+  hidePostgame();
   toggleSections();
 }
 
@@ -272,4 +277,14 @@ function escHtml(str) {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
+}
+
+// ─── PÓS-JOGO ────────────────────────────────────────────
+function showPostgame() {
+  document.getElementById("postgame-section").style.display = "block";
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function hidePostgame() {
+  document.getElementById("postgame-section").style.display = "none";
 }
