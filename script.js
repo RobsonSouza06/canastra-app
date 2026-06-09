@@ -167,8 +167,10 @@ function createWinnerModal() {
       <p class="modal-title">Vencedor da partida</p>
       <p class="modal-winner" id="modal-winner-name"></p>
       <p class="modal-score" id="modal-winner-score"></p>
-      <button class="btn btn-primary" onclick="closeWinnerModal()">Ver placar final</button>
-      <button class="btn btn-reset" onclick="resetGame()">🔄 Nova partida</button>
+      <div class="modal-divider"></div>
+      <button class="btn btn-primary" onclick="rematchGame()">🔁 Nova partida — mesmas duplas</button>
+      <button class="btn btn-new-players" onclick="newPlayersGame()">👥 Novos jogadores</button>
+      <button class="btn btn-ghost" onclick="closeWinnerModal()">Ver placar final</button>
     </div>
   `;
   document.body.appendChild(overlay);
@@ -183,6 +185,33 @@ function showWinnerModal(name, score, target) {
 
 function closeWinnerModal() {
   document.getElementById("winner-overlay").classList.add("hidden");
+}
+
+// Mesmas duplas — zera só as rodadas, mantém histórico
+function rematchGame() {
+  rounds = [];
+  scores = players.map(() => 0);
+  saveGame();
+  closeWinnerModal();
+  renderScoreBoard();
+  renderRounds();
+  renderRoundInputs();
+  toggleSections();
+}
+
+// Novos jogadores — reseta tudo exceto histórico
+function newPlayersGame() {
+  players = [];
+  rounds  = [];
+  scores  = [];
+  localStorage.removeItem("canastra");
+  document.getElementById("scoreBoard").innerHTML  = "";
+  document.getElementById("roundInputs").innerHTML = "";
+  document.getElementById("rounds").innerHTML      = "";
+  document.getElementById("target").value          = "";
+  document.getElementById("name").value            = "";
+  closeWinnerModal();
+  toggleSections();
 }
 
 // ─── HISTÓRICO ───────────────────────────────────────────
@@ -216,7 +245,7 @@ function renderHistory() {
   });
 }
 
-// ─── REINICIAR ───────────────────────────────────────────
+// ─── REINICIAR (botão da tela principal) ─────────────────
 function resetGame() {
   if (!confirm("Reiniciar o jogo? O histórico de rodadas será apagado.")) return;
 
