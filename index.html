@@ -1,20 +1,17 @@
-HTML
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
 
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <meta name="theme-color" content="#0f172a">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
   <title>Canastra Score</title>
 
-  <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="style.css?v=1">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
@@ -27,11 +24,13 @@ HTML
 </div>
 
 <div class="card">
-  <h2>Jogadores/Duplas</h2>
-  <input type="text" id="name" placeholder="Nome">
+  <h2>Duplas</h2>
+  <input type="text" id="name" placeholder="Nome da dupla">
   <button onclick="addPlayer()">Adicionar</button>
-  <ul id="players"></ul>
 </div>
+
+<!-- PLACAR EM COLUNAS -->
+<div class="score-board" id="scoreBoard"></div>
 
 <div class="card">
   <h2>Nova Rodada</h2>
@@ -42,11 +41,6 @@ HTML
 <div class="card">
   <h2>Rodadas</h2>
   <ul id="rounds"></ul>
-</div>
-
-<div class="card">
-  <h2>Placar</h2>
-  <ul id="score"></ul>
 </div>
 
 <button class="reset" onclick="resetGame()">🔄 Reiniciar Jogo</button>

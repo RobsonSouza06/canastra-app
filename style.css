@@ -1,78 +1,57 @@
-/* RESET */
 * {
   box-sizing: border-box;
 }
 
-html, body {
-  margin: 0;
-  padding: 0;
-}
-
-/* FUNDO */
 body {
+  margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
   background: #0f172a;
   color: #f1f5f9;
-
   display: flex;
   justify-content: center;
-  min-height: 100vh; /* Garante que o fundo cubra a tela inteira */
-  padding-bottom: env(safe-area-inset-bottom); /* Respeita a barra de navegação inferior do celular */
 }
 
-/* CONTAINER PRINCIPAL (EFEITO APP) */
 .app {
   width: 100%;
-  max-width: 420px;
+  max-width: 600px;
   padding: 16px;
 }
 
-/* TÍTULOS */
+/* TITULOS */
 h1 {
   text-align: center;
-  margin-bottom: 15px;
-  font-size: 22px;
 }
 
 h2 {
-  margin-top: 15px;
-  margin-bottom: 8px;
-  font-size: 16px;
   color: #94a3b8;
+  font-size: 16px;
 }
 
-/* INPUTS */
+/* INPUT */
 input {
   width: 100%;
   padding: 14px;
-  margin: 6px 0;
   border-radius: 12px;
-  border: 1px solid #334155; /* Borda sutil para dar acabamento */
-  font-size: 15px;
-  background: #0f172a; /* Fundo levemente mais escuro que o card para destacar */
+  border: none;
+  margin: 6px 0;
+  background: #1e293b;
   color: white;
 }
 
-/* BOTÕES */
+/* BOTAO */
 button {
   width: 100%;
   padding: 14px;
-  margin-top: 10px;
   border-radius: 12px;
   border: none;
-  font-size: 15px;
   font-weight: bold;
-  cursor: pointer;
+  margin-top: 10px;
   background: #22c55e;
   color: white;
 }
 
 button.delete {
   background: #ef4444;
-  width: auto; /* Faz o botão não ocupar a largura inteira dentro da lista */
-  margin-top: 0;
-  padding: 8px 12px;
-  font-size: 13px;
 }
 
 button.reset {
@@ -80,7 +59,7 @@ button.reset {
   margin-top: 20px;
 }
 
-/* CARDS */
+/* CARD */
 .card {
   background: #1e293b;
   padding: 14px;
@@ -88,26 +67,42 @@ button.reset {
   margin-bottom: 12px;
 }
 
-/* LISTAS */
-#players li,
-#rounds li,
-#score li {
+/* 🔥 PLACAR LADO A LADO */
+.score-board {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.score-card {
+  background: #334155;
+  padding: 16px;
+  border-radius: 16px;
+  text-align: center;
+}
+
+.score-card h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.score-card p {
+  font-size: 28px;
+  font-weight: bold;
+  margin: 10px 0 0;
+}
+
+/* destaque vencedor */
+.winner {
+  background: #22c55e;
+  color: black;
+}
+
+/* lista */
+#rounds li {
   background: #334155;
   padding: 12px;
   border-radius: 12px;
   margin-bottom: 10px;
-}
-
-/* Ajuste específico para alinhar o texto e o botão de excluir na mesma linha */
-#rounds li {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-/* PLACAR */
-#score li {
-  background: #22c55e;
-  color: black;
-  font-weight: bold;
 }

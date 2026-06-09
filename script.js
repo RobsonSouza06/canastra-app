@@ -2,32 +2,24 @@ let players = [];
 let rounds = [];
 let scores = [];
 
-// Adicionar jogador
+// adicionar dupla
 function addPlayer() {
   const name = document.getElementById("name").value;
   if (!name) return;
 
+  if (players.length >= 2) {
+    alert("Máximo de 2 duplas");
+    return;
+  }
+
   players.push(name);
-
   document.getElementById("name").value = "";
-  renderPlayers();
-}
-
-// Mostrar jogadores
-function renderPlayers() {
-  const list = document.getElementById("players");
-  list.innerHTML = "";
-
-  players.forEach((p, i) => {
-    const li = document.createElement("li");
-    li.innerText = p + " (" + (scores[i] || 0) + " pts)";
-    list.appendChild(li);
-  });
 
   renderRoundInputs();
+  renderScoreBoard();
 }
 
-// Inputs da rodada
+// inputs rodada
 function renderRoundInputs() {
   const div = document.getElementById("roundInputs");
   div.innerHTML = "";
@@ -41,7 +33,7 @@ function renderRoundInputs() {
   });
 }
 
-// Adicionar rodada
+// adicionar rodada
 function addRound() {
   const target = parseInt(document.getElementById("target").value);
 
@@ -59,7 +51,7 @@ function addRound() {
   checkWinner(target);
 }
 
-// Recalcular pontuação
+// recalcular
 function recalculateScores() {
   scores = players.map(() => 0);
 
@@ -69,23 +61,34 @@ function recalculateScores() {
     });
   });
 
-  renderPlayers();
-  renderScore();
+  renderScoreBoard();
 }
 
-// Mostrar placar
-function renderScore() {
-  const list = document.getElementById("score");
-  list.innerHTML = "";
+// 🔥 placar visual
+function renderScoreBoard() {
+  const div = document.getElementById("scoreBoard");
+  div.innerHTML = "";
+
+  let maxScore = Math.max(...scores, 0);
 
   players.forEach((p, i) => {
-    const li = document.createElement("li");
-    li.innerText = p + ": " + scores[i];
-    list.appendChild(li);
+    const card = document.createElement("div");
+    card.className = "score-card";
+
+    if (scores[i] === maxScore && maxScore > 0) {
+      card.classList.add("winner");
+    }
+
+    card.innerHTML = `
+      <h3>${p}</h3>
+      <p>${scores[i] || 0}</p>
+    `;
+
+    div.appendChild(card);
   });
 }
 
-// Mostrar rodadas
+// rodadas
 function renderRounds() {
   const list = document.getElementById("rounds");
   list.innerHTML = "";
@@ -106,34 +109,33 @@ function renderRounds() {
   });
 }
 
-// Deletar rodada
+// deletar
 function deleteRound(index) {
   rounds.splice(index, 1);
   recalculateScores();
   renderRounds();
 }
 
-// Verificar vencedor
+// vencedor
 function checkWinner(target) {
   if (!target) return;
 
-  const someoneReached = scores.some(score => score >= target);
+  const someoneReached = scores.some(s => s >= target);
   if (!someoneReached) return;
 
   let maxScore = Math.max(...scores);
   let winnerIndex = scores.indexOf(maxScore);
 
-  alert("🏆 Vencedor: " + players[winnerIndex] + " com " + maxScore + " pontos!");
+  alert("🏆 Vencedor: " + players[winnerIndex]);
 }
 
-// Resetar jogo
+// reset
 function resetGame() {
   players = [];
   rounds = [];
   scores = [];
 
-  document.getElementById("players").innerHTML = "";
+  document.getElementById("scoreBoard").innerHTML = "";
   document.getElementById("roundInputs").innerHTML = "";
-  document.getElementById("score").innerHTML = "";
   document.getElementById("rounds").innerHTML = "";
 }
