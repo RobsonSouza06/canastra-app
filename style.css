@@ -1,96 +1,62 @@
-/* RESET GLOBAL */
 * {
   box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-html, body {
-  min-height: 100vh;
-  background: #0f172a;
 }
 
 body {
+  margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
+  background: #0f172a;
   color: #f1f5f9;
   display: flex;
   justify-content: center;
-  align-items: flex-start;
-  /* Margem de segurança para o notch inferior de celulares modernos */
-  padding-bottom: env(safe-area-inset-bottom, 24px);
 }
 
-/* CONTAINER DO APP - Ocupa 100% da largura do celular */
 .app {
   width: 100%;
-  max-width: 480px; 
+  max-width: 600px;
   padding: 16px;
-}
-
-/* LISTAS (Remove os pontos padrões) */
-ul {
-  list-style: none;
 }
 
 /* TITULOS */
 h1 {
   text-align: center;
-  margin-top: 10px;
-  margin-bottom: 20px;
-  font-size: 26px;
 }
 
 h2 {
   color: #94a3b8;
   font-size: 16px;
-  margin-bottom: 8px;
 }
 
-/* INPUT COM DESIGN DE APP */
+/* INPUT */
 input {
   width: 100%;
   padding: 14px;
   border-radius: 12px;
-  border: 1px solid #334155;
+  border: none;
   margin: 6px 0;
-  background: #0f172a; /* Dá profundidade dentro do card */
+  background: #1e293b;
   color: white;
-  font-size: 16px; /* Impede zoom automático do iOS ao clicar */
-  
-  appearance: none; /* Versão padrão para navegadores modernos */
-  -webkit-appearance: none; /* Mantido para compatibilidade com Safari/iOS */
 }
 
-/* BOTOES */
+/* BOTAO */
 button {
   width: 100%;
   padding: 14px;
   border-radius: 12px;
   border: none;
   font-weight: bold;
-  font-size: 15px;
   margin-top: 10px;
   background: #22c55e;
   color: white;
-  cursor: pointer;
-}
-
-button:active {
-  opacity: 0.8;
 }
 
 button.delete {
   background: #ef4444;
-  width: auto;
-  margin-top: 0;
-  padding: 8px 12px;
-  font-size: 13px;
 }
 
 button.reset {
   background: #f59e0b;
   margin-top: 20px;
-  margin-bottom: 10px;
 }
 
 /* CARD */
@@ -101,7 +67,7 @@ button.reset {
   margin-bottom: 12px;
 }
 
-/* PLACAR EM GRID */
+/* PLACAR */
 .score-board {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -118,16 +84,14 @@ button.reset {
 
 .score-card h3 {
   margin: 0;
-  font-size: 16px;
 }
 
 .score-card p {
   font-size: 28px;
   font-weight: bold;
-  margin-top: 5px;
 }
 
-/* ANIMACAO VENCEDOR */
+/* ANIMAÇÃO VENCEDOR */
 .winner {
   background: #22c55e;
   color: black;
@@ -140,18 +104,10 @@ button.reset {
   100% { transform: scale(1); }
 }
 
-/* LISTAS DE RODADAS E HISTORICO */
+/* LISTA */
 #rounds li, #history li {
   background: #334155;
   padding: 12px;
   border-radius: 12px;
   margin-bottom: 10px;
-  font-size: 15px;
-}
-
-/* Alinha o texto da rodada e botão de excluir na mesma linha */
-#rounds li {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
 }

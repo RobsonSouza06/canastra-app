@@ -2,68 +2,53 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0f172a">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
   <title>Canastra Score</title>
 
-  <link rel="manifest" href="manifest.json">
-  
-  <link rel="stylesheet" href="style.css?v=4">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <div class="app">
 
-  <h1>🃏 Canastra Score</h1>
+<h1>🃏 Canastra Score</h1>
 
-  <div class="card">
-    <input type="number" id="target" placeholder="Pontuação para vencer (ex: 3000)">
-  </div>
+<div class="card">
+  <input type="number" id="target" placeholder="Pontuação para vencer (ex: 3000)">
+</div>
 
-  <div class="card">
-    <input type="text" id="name" placeholder="Nome da dupla">
-    <button onclick="addPlayer()">Adicionar</button>
-  </div>
+<div class="card">
+  <input type="text" id="name" placeholder="Nome da dupla">
+  <button onclick="addPlayer()">Adicionar</button>
+</div>
 
-  <div id="scoreBoard" class="score-board"></div>
+<div id="scoreBoard" class="score-board"></div>
 
-  <div class="card">
-    <div id="roundInputs"></div>
-    <button onclick="addRound()">Adicionar Rodada</button>
-  </div>
+<div class="card">
+  <div id="roundInputs"></div>
+  <button onclick="addRound()">Adicionar Rodada</button>
+</div>
 
-  <div class="card">
-    <ul id="rounds"></ul>
-  </div>
+<div class="card">
+  <ul id="rounds"></ul>
+</div>
 
-  <button class="reset" onclick="resetGame()">🔄 Reiniciar</button>
+<button class="reset" onclick="resetGame()">🔄 Reiniciar</button>
 
-  <div class="card">
-    <h2>Histórico</h2>
-    <ul id="history"></ul>
-  </div>
+<div class="card">
+  <h2>Histórico</h2>
+  <ul id="history"></ul>
+</div>
 
 </div>
 
 <script src="script.js"></script>
-<script>
-// Registro com escopo configurado para subdomínios como o GitHub Pages
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("service-worker.js", { scope: "./" })
-    .then(function(reg) {
-      console.log("Service Worker ativo no escopo:", reg.scope);
-    })
-    .catch(function(err) {
-      console.log("Erro ao registrar Service Worker:", err);
-    });
-}
-</script>
-
 </body>
 </html>
