@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Canastra Score</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h1>🃏 Canastra Score</h1>
+
+<div class="card">
+  <input type="number" id="target" placeholder="Pontuação para vencer (ex: 3000)">
+</div>
+
+<div class="card">
+  <h2>Jogadores/Duplas</h2>
+  <input type="text" id="name" placeholder="Nome">
+  <button onclick="addPlayer()">Adicionar</button>
+  <ul id="players"></ul>
+</div>
+
+<div class="card">
+  <h2>Nova Rodada</h2>
+  <div id="roundInputs"></div>
+  <button onclick="addRound()">Adicionar Rodada</button>
+</div>
+
+<div class="card">
+  <h2>Rodadas</h2>
+  <ul id="rounds"></ul>
+</div>
+
+<div class="card">
+  <h2>Placar</h2>
+  <ul id="score"></ul>
+</div>
+
+<button class="reset" onclick="resetGame()">🔄 Reiniciar Jogo</button>
+
+<script src="script.js"></script>
+
+</body>
+</html>
