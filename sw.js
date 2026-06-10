@@ -1,14 +1,13 @@
-const CACHE_NAME = "canastra-cache-v3";
+const CACHE_NAME = "canastra-cache-v4";
 
 const urlsToCache = [
-  "/",
-  "/index.html",
-  "/style.css",
-  "/script.js",
-  "/manifest.json"
+  "./",
+  "./index.html",
+  "./style.css",
+  "./script.js",
+  "./manifest.json"
 ];
 
-// Instala e força a limpeza do cache antigo
 self.addEventListener("install", event => {
   self.skipWaiting();
   event.waitUntil(
@@ -16,7 +15,6 @@ self.addEventListener("install", event => {
   );
 });
 
-// Ativa e remove caches velhos imediatamente
 self.addEventListener("activate", event => {
   event.waitUntil(
     caches.keys().then(keys =>
