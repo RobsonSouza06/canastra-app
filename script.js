@@ -1,12 +1,3 @@
-// ─── REGISTRO DO PWA (Obrigatório para tela cheia) ───
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js')
-      .then(reg => console.log('PWA: Service Worker registrado!', reg))
-      .catch(err => console.error('PWA: Erro no registro', err));
-  });
-}
-
 let players = [];
 let rounds  = [];
 let scores  = [];

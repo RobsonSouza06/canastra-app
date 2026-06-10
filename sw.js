@@ -1,14 +1,10 @@
-// Mudei para v2 para forçar a atualização no celular
-const CACHE_NAME = "canastra-cache-v2"; 
+const CACHE_NAME = "canastra-cache-v1";
 
 const urlsToCache = [
   "/",
   "/index.html",
   "/style.css",
-  "/script.js",
-  "/manifest.json",
-  "/icon-192.png",
-  "/icon-512.png"
+  "/script.js"
 ];
 
 self.addEventListener("install", event => {

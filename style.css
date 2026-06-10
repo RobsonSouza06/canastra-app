@@ -17,10 +17,6 @@ body {
   color: #f1f5f9;
   min-height: 100vh;
   padding-bottom: env(safe-area-inset-bottom, 16px);
-  /* Ajustes para comportamento de App Nativo */
-  user-select: none; 
-  -webkit-user-select: none;
-  overscroll-behavior-y: none; 
 }
 
 /* ─── APP WRAPPER ─── */
