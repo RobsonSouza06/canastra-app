@@ -1,8 +1,8 @@
 {
   "name": "Canastra Score",
   "short_name": "Canastra",
-  "start_url": "./index.html",
-  "scope": "./",
+  "start_url": "/canastra-app/",
+  "scope": "/canastra-app/",
   "display": "standalone",
   "background_color": "#0f172a",
   "theme_color": "#0f172a",

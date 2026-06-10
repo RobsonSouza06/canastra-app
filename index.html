@@ -10,10 +10,10 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Canastra">
 
-  <link rel="manifest" href="./manifest.json">
+  <link rel="manifest" href="/canastra-app/manifest.json">
 
   <title>Canastra Score</title>
-  <link rel="stylesheet" href="./style.css">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
@@ -86,10 +86,10 @@
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js').catch(() => {});
+      navigator.serviceWorker.register('/canastra-app/sw.js').catch(() => {});
     });
   }
 </script>
-<script src="./script.js"></script>
+<script src="script.js"></script>
 </body>
 </html>

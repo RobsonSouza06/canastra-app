@@ -1,11 +1,11 @@
-const CACHE_NAME = "canastra-cache-v4";
+const CACHE_NAME = "canastra-cache-v5";
 
 const urlsToCache = [
-  "./",
-  "./index.html",
-  "./style.css",
-  "./script.js",
-  "./manifest.json"
+  "/canastra-app/",
+  "/canastra-app/index.html",
+  "/canastra-app/style.css",
+  "/canastra-app/script.js",
+  "/canastra-app/manifest.json"
 ];
 
 self.addEventListener("install", event => {
