@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+
+  <!-- VIEWPORT -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+  <!-- PWA CONFIG -->
+  <meta name="theme-color" content="#0f172a">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Canastra">
+
+  <!-- 👇 AQUI ESTÁ A CORREÇÃO -->
+  <link rel="manifest" href="manifest.json">
+
+  <title>Canastra Score</title>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="app">
+
+  <header class="app-header">
+    <span class="app-icon">🃏</span>
+    <h1>Contador de Pontos Canastra</h1>
+  </header>
+
+  <!-- PÓS JOGO -->
+  <section id="postgame-section" style="display:none">
+    <div class="postgame-banner">
+      <p class="postgame-label">🏆 Partida encerrada! O que deseja fazer?</p>
+      <button class="btn btn-primary" onclick="rematchGame()">🔁 Nova partida — mesmas duplas</button>
+      <button class="btn btn-new-players" onclick="newPlayersGame()">👥 Novos jogadores</button>
+    </div>
+  </section>
+
+  <!-- CONFIG -->
+  <section class="card">
+    <p class="card-label">Pontuação para vencer</p>
+    <input type="number" id="target" placeholder="Ex: 3000" inputmode="numeric">
+  </section>
+
+  <!-- JOGADORES -->
+  <section class="card">
+    <p class="card-label">Adicionar dupla / jogador</p>
+    <div class="input-row">
+      <input type="text" id="name" placeholder="Nome da dupla">
+      <button class="btn-add" onclick="addPlayer()">+</button>
+    </div>
+  </section>
+
+  <!-- PLACAR -->
+  <div id="scoreBoard" class="score-board"></div>
+
+  <!-- BOTÃO RODADA -->
+  <section id="round-section" style="display:none">
+    <button class="btn btn-primary" onclick="openRoundModal()">＋ Adicionar Rodada</button>
+  </section>
+
+  <!-- RODADAS -->
+  <section class="card" id="rounds-section" style="display:none">
+    <p class="card-label">Rodadas</p>
+    <ul id="rounds" class="round-list"></ul>
+  </section>
+
+  <!-- RESET -->
+  <button class="btn btn-reset" onclick="resetGame()">🔄 Reiniciar Jogo</button>
+
+  <!-- HISTÓRICO -->
+  <section class="card">
+    <div class="history-header">
+      <p class="card-label" style="margin-bottom:0">Histórico de partidas</p>
+      <button class="btn-clear-history" onclick="clearHistory()">🗑 Limpar</button>
+    </div>
+    <ul id="history" class="history-list" style="margin-top:10px">
+      <li class="empty-msg">Nenhuma partida finalizada ainda.</li>
+    </ul>
+  </section>
+
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay hidden" id="round-overlay">
+  <div class="modal">
+    <p class="modal-round-title" id="round-modal-title">Rodada 1</p>
+    <p class="modal-round-sub">Preencha os pontos de cada dupla</p>
+
+    <div id="round-modal-inputs"></div>
+
+    <div class="modal-divider"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeRoundModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="confirmarRodada()">✔ Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
