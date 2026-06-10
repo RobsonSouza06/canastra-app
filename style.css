@@ -16,7 +16,7 @@ body {
   background: #0f172a;
   color: #f1f5f9;
   min-height: 100vh;
-  padding-bottom: env(safe-area-inset-bottom, 16px);
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 32px);
 }
 
 /* ─── APP WRAPPER ─── */
@@ -52,8 +52,8 @@ h1 {
 .card {
   background: #1e293b;
   border-radius: 16px;
-  padding: 16px;
-  margin-bottom: 12px;
+  padding: 18px;
+  margin-bottom: 14px;
 }
 
 .card-label {
@@ -107,8 +107,8 @@ input::placeholder {
   justify-content: center;
   gap: 8px;
   width: 100%;
-  padding: 15px;
-  border-radius: 12px;
+  padding: 17px;
+  border-radius: 14px;
   border: none;
   font-size: 16px;
   font-weight: 600;
@@ -124,7 +124,8 @@ input::placeholder {
 .btn-primary {
   background: #22c55e;
   color: #052e16;
-  margin-top: 12px;
+  margin-top: 14px;
+  margin-bottom: 4px;
 }
 
 .btn-danger {
@@ -136,8 +137,8 @@ input::placeholder {
   background: #f59e0b;
   color: #1c1005;
   width: 100%;
-  padding: 15px;
-  border-radius: 12px;
+  padding: 17px;
+  border-radius: 14px;
   border: none;
   font-size: 16px;
   font-weight: 600;
@@ -145,7 +146,8 @@ input::placeholder {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 12px;
+  margin-top: 4px;
+  margin-bottom: 14px;
   transition: opacity .15s;
 }
 
