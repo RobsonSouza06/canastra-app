@@ -1,6 +1,7 @@
 let players = [];
 let rounds  = [];
 let scores  = [];
+let gameStarted = false;
 
 const winSound = new Audio("https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg");
 
@@ -10,10 +11,17 @@ window.onload = () => {
   if (data && data.players && data.players.length > 0) {
     players = data.players;
     rounds  = data.rounds || [];
+    gameStarted = data.gameStarted || false;
     if (data.target) document.getElementById("target").value = data.target;
     recalculateScores();
     renderRounds();
-    toggleSections();
+    if (gameStarted) {
+      showGameSection();
+    } else {
+      showSetupSection();
+      renderScoreBoardSetup();
+      toggleBtnJogar();
+    }
   }
   renderHistory();
   createWinnerModal();
@@ -22,7 +30,7 @@ window.onload = () => {
 // ─── SALVAR ──────────────────────────────────────────────
 function saveGame() {
   const target = document.getElementById("target").value;
-  localStorage.setItem("canastra", JSON.stringify({ players, rounds, target }));
+  localStorage.setItem("canastra", JSON.stringify({ players, rounds, target, gameStarted }));
 }
 
 // ─── ADICIONAR JOGADOR ───────────────────────────────────
@@ -34,8 +42,8 @@ function addPlayer() {
   players.push(name);
   input.value = "";
   input.focus();
-  renderScoreBoard();
-  toggleSections();
+  renderScoreBoardSetup();
+  toggleBtnJogar();
   saveGame();
 }
 
@@ -45,10 +53,62 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-// ─── SEÇÕES VISÍVEIS ─────────────────────────────────────
-function toggleSections() {
-  document.getElementById("round-section").style.display  = players.length > 0 ? "block" : "none";
-  document.getElementById("rounds-section").style.display = rounds.length  > 0 ? "block" : "none";
+// Mostra botão Jogar quando tiver pelo menos 2 jogadores e pontuação preenchida
+function toggleBtnJogar() {
+  const target = document.getElementById("target").value;
+  const show = players.length >= 2 && target;
+  document.getElementById("btn-jogar-section").style.display = show ? "block" : "none";
+
+  // Também observa mudança no campo target
+  document.getElementById("target").oninput = () => {
+    const t = document.getElementById("target").value;
+    document.getElementById("btn-jogar-section").style.display =
+      (players.length >= 2 && t) ? "block" : "none";
+  };
+}
+
+// Placar no setup (sem pontuação, só nomes)
+function renderScoreBoardSetup() {
+  const div = document.getElementById("scoreBoard-setup");
+  div.innerHTML = "";
+  players.forEach((p, i) => {
+    const card = document.createElement("div");
+    card.className = "score-card";
+    card.innerHTML = `
+      <h3>${escHtml(p)}</h3>
+      <button class="btn-remove" onclick="removePlayer(${i})">✕</button>
+    `;
+    div.appendChild(card);
+  });
+}
+
+function removePlayer(i) {
+  players.splice(i, 1);
+  renderScoreBoardSetup();
+  toggleBtnJogar();
+  saveGame();
+}
+
+// ─── INICIAR JOGO ────────────────────────────────────────
+function startGame() {
+  const target = document.getElementById("target").value;
+  if (!target) { alert("Preencha a pontuação para vencer."); return; }
+  if (players.length < 2) { alert("Adicione pelo menos 2 jogadores."); return; }
+  gameStarted = true;
+  saveGame();
+  showGameSection();
+}
+
+function showGameSection() {
+  document.getElementById("setup-section").style.display = "none";
+  document.getElementById("game-section").style.display  = "block";
+  renderScoreBoard();
+  renderRounds();
+}
+
+function showSetupSection() {
+  document.getElementById("setup-section").style.display = "block";
+  document.getElementById("game-section").style.display  = "none";
 }
 
 // ─── MODAL DE RODADA ─────────────────────────────────────
@@ -79,8 +139,6 @@ function openRoundModal() {
       </div>
     `;
     container.appendChild(block);
-
-    // Atualiza total em tempo real
     ["saida", "cartas"].forEach(tipo => {
       document.getElementById(`${tipo}_${i}`).addEventListener("input", () => updateTotal(i));
     });
@@ -89,7 +147,6 @@ function openRoundModal() {
   document.getElementById("round-modal-title").textContent = `Rodada ${rounds.length + 1}`;
   document.getElementById("round-overlay").classList.remove("hidden");
 
-  // Foca no primeiro campo
   setTimeout(() => {
     const first = document.getElementById("saida_0");
     if (first) { first.focus(); first.select(); }
@@ -112,13 +169,11 @@ function confirmarRodada() {
     const cartas = parseInt(document.getElementById(`cartas_${i}`).value) || 0;
     return saida + cartas;
   });
-
   rounds.push(round);
   closeRoundModal();
   recalculateScores();
   renderRounds();
   checkWinner();
-  toggleSections();
   saveGame();
 }
 
@@ -132,6 +187,7 @@ function recalculateScores() {
 // ─── PLACAR ──────────────────────────────────────────────
 function renderScoreBoard() {
   const div = document.getElementById("scoreBoard");
+  if (!div) return;
   div.innerHTML = "";
   const max = Math.max(...scores, 0);
   players.forEach((p, i) => {
@@ -145,6 +201,7 @@ function renderScoreBoard() {
 // ─── LISTA DE RODADAS ────────────────────────────────────
 function renderRounds() {
   const list = document.getElementById("rounds");
+  if (!list) return;
   list.innerHTML = "";
   rounds.forEach((r, i) => {
     const li = document.createElement("li");
@@ -153,7 +210,8 @@ function renderRounds() {
       <button class="btn-delete" onclick="deleteRound(${i})">Excluir</button>`;
     list.appendChild(li);
   });
-  document.getElementById("rounds-section").style.display = rounds.length > 0 ? "block" : "none";
+  const sec = document.getElementById("rounds-section");
+  if (sec) sec.style.display = rounds.length > 0 ? "block" : "none";
 }
 
 function deleteRound(i) {
@@ -187,7 +245,8 @@ function createWinnerModal() {
       <p class="modal-winner" id="modal-winner-name"></p>
       <p class="modal-score" id="modal-winner-score"></p>
       <div class="modal-divider"></div>
-      <button class="btn btn-primary" onclick="rematchGame()">🔁 Nova partida — mesmas duplas</button>
+      <button class="btn btn-primary" onclick="rematchSameScore()">🔁 Mesmas duplas, mesma pontuação</button>
+      <button class="btn btn-warning" onclick="rematchNewScore()">🎯 Mesmas duplas, pontuação diferente</button>
       <button class="btn btn-new-players" onclick="newPlayersGame()">👥 Novos jogadores</button>
       <button class="btn btn-ghost" onclick="verPlacar()">👁 Ver placar final</button>
     </div>
@@ -202,7 +261,8 @@ function showWinnerModal(name, score, target) {
 }
 
 function fecharModal() {
-  document.getElementById("winner-overlay").classList.add("hidden");
+  const el = document.getElementById("winner-overlay");
+  if (el) el.classList.add("hidden");
 }
 
 function verPlacar() {
@@ -211,47 +271,76 @@ function verPlacar() {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-// ─── NOVA PARTIDA — MESMAS DUPLAS ────────────────────────
-function rematchGame() {
+// ─── REMATCH MESMA PONTUAÇÃO ─────────────────────────────
+function rematchSameScore() {
   fecharModal();
   document.getElementById("postgame-section").style.display = "none";
+  document.getElementById("new-score-section").style.display = "none";
   rounds = [];
   scores = players.map(() => 0);
+  gameStarted = true;
   saveGame();
   renderScoreBoard();
   renderRounds();
-  toggleSections();
 }
 
-// ─── NOVA PARTIDA — NOVOS JOGADORES ─────────────────────
+// ─── REMATCH PONTUAÇÃO DIFERENTE ─────────────────────────
+function rematchNewScore() {
+  fecharModal();
+  document.getElementById("postgame-section").style.display = "block";
+  document.getElementById("new-score-section").style.display = "block";
+  document.getElementById("new-target").focus();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function rematchWithNewScore() {
+  const newTarget = document.getElementById("new-target").value;
+  if (!newTarget) { alert("Preencha a nova pontuação."); return; }
+  document.getElementById("target").value = newTarget;
+  document.getElementById("new-target").value = "";
+  document.getElementById("postgame-section").style.display = "none";
+  document.getElementById("new-score-section").style.display = "none";
+  rounds = [];
+  scores = players.map(() => 0);
+  gameStarted = true;
+  saveGame();
+  renderScoreBoard();
+  renderRounds();
+}
+
+// ─── NOVOS JOGADORES ─────────────────────────────────────
 function newPlayersGame() {
   fecharModal();
-  document.getElementById("postgame-section").style.display = "none";
   players = [];
   rounds  = [];
   scores  = [];
+  gameStarted = false;
   localStorage.removeItem("canastra");
-  document.getElementById("scoreBoard").innerHTML = "";
-  document.getElementById("rounds").innerHTML     = "";
-  document.getElementById("target").value         = "";
-  document.getElementById("name").value           = "";
-  toggleSections();
+  document.getElementById("target").value = "";
+  document.getElementById("name").value   = "";
+  document.getElementById("scoreBoard-setup").innerHTML = "";
+  document.getElementById("postgame-section").style.display = "none";
+  document.getElementById("new-score-section").style.display = "none";
+  showSetupSection();
+  toggleBtnJogar();
 }
 
 // ─── REINICIAR ───────────────────────────────────────────
 function resetGame() {
-  if (!confirm("Reiniciar o jogo? O histórico de rodadas será apagado.")) return;
+  if (!confirm("Reiniciar o jogo? Tudo será apagado.")) return;
   fecharModal();
-  document.getElementById("postgame-section").style.display = "none";
   players = [];
   rounds  = [];
   scores  = [];
+  gameStarted = false;
   localStorage.removeItem("canastra");
-  document.getElementById("scoreBoard").innerHTML = "";
-  document.getElementById("rounds").innerHTML     = "";
-  document.getElementById("target").value         = "";
-  document.getElementById("name").value           = "";
-  toggleSections();
+  document.getElementById("target").value = "";
+  document.getElementById("name").value   = "";
+  document.getElementById("scoreBoard-setup").innerHTML = "";
+  document.getElementById("postgame-section").style.display = "none";
+  document.getElementById("new-score-section").style.display = "none";
+  showSetupSection();
+  toggleBtnJogar();
 }
 
 // ─── HISTÓRICO ───────────────────────────────────────────

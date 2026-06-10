@@ -513,3 +513,58 @@ input::placeholder {
 .modal-actions .btn {
   flex: 1;
 }
+
+/* ─── BOTÃO JOGAR ─── */
+.btn-jogar {
+  background: #22c55e;
+  color: #052e16;
+  width: 100%;
+  padding: 17px;
+  border-radius: 14px;
+  border: none;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  transition: opacity .15s, transform .1s;
+  letter-spacing: 0.3px;
+}
+.btn-jogar:active { opacity: .8; transform: scale(.98); }
+
+/* ─── BOTÃO AVISO (pontuação diferente) ─── */
+.btn-warning {
+  background: #f59e0b;
+  color: #1c1005;
+  margin-top: 8px;
+}
+
+/* ─── BOTÃO REMOVER JOGADOR NO SETUP ─── */
+.btn-remove {
+  background: #7f1d1d;
+  color: #fca5a5;
+  border: none;
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 6px;
+  transition: opacity .15s;
+}
+.btn-remove:active { opacity: .7; }
+
+/* Card no setup mostra nome + botão remover */
+#scoreBoard-setup .score-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+#scoreBoard-setup .score-card h3 {
+  font-size: 15px;
+  color: #f1f5f9;
+}
