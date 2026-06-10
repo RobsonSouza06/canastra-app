@@ -1,293 +1,139 @@
 let players = [];
-let rounds  = [];
-let scores  = [];
+let rounds = [];
+let scores = [];
 
-const winSound = new Audio("https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg");
-
-// ─── INIT ────────────────────────────────────────────────
-window.onload = () => {
-  const data = JSON.parse(localStorage.getItem("canastra") || "null");
-  if (data && data.players && data.players.length > 0) {
-    players = data.players;
-    rounds  = data.rounds || [];
-    if (data.target) document.getElementById("target").value = data.target;
-    recalculateScores();
-    renderRounds();
-    toggleSections();
-  }
-  renderHistory();
-  createWinnerModal();
-};
-
-// ─── SALVAR ──────────────────────────────────────────────
-function saveGame() {
-  const target = document.getElementById("target").value;
-  localStorage.setItem("canastra", JSON.stringify({ players, rounds, target }));
-}
-
-// ─── ADICIONAR JOGADOR ───────────────────────────────────
+// Adicionar jogador
 function addPlayer() {
-  const input = document.getElementById("name");
-  const name  = input.value.trim();
-  if (!name) { input.focus(); return; }
-  if (players.length >= 4) { alert("Máximo de 4 jogadores/duplas."); return; }
+  const name = document.getElementById("name").value;
+  if (!name) return;
+
   players.push(name);
-  input.value = "";
-  input.focus();
-  renderScoreBoard();
-  toggleSections();
-  saveGame();
+
+  document.getElementById("name").value = "";
+  renderPlayers();
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  document.getElementById("name").addEventListener("keydown", e => {
-    if (e.key === "Enter") addPlayer();
-  });
-});
-
-// ─── SEÇÕES VISÍVEIS ─────────────────────────────────────
-function toggleSections() {
-  document.getElementById("round-section").style.display  = players.length > 0 ? "block" : "none";
-  document.getElementById("rounds-section").style.display = rounds.length  > 0 ? "block" : "none";
-}
-
-// ─── MODAL DE RODADA ─────────────────────────────────────
-function openRoundModal() {
-  const container = document.getElementById("round-modal-inputs");
-  container.innerHTML = "";
+// Mostrar jogadores
+function renderPlayers() {
+  const list = document.getElementById("players");
+  list.innerHTML = "";
 
   players.forEach((p, i) => {
-    const block = document.createElement("div");
-    block.className = "round-player-block";
-    block.innerHTML = `
-      <p class="round-player-name">${escHtml(p)}</p>
-      <div class="round-fields">
-        <div class="round-field">
-          <label>Saída</label>
-          <input type="number" id="saida_${i}" inputmode="numeric" placeholder="0">
-        </div>
-        <div class="round-field-sep">+</div>
-        <div class="round-field">
-          <label>Cartas</label>
-          <input type="number" id="cartas_${i}" inputmode="numeric" placeholder="0">
-        </div>
-        <div class="round-field-sep">=</div>
-        <div class="round-field round-field-total">
-          <label>Total</label>
-          <span class="round-total-val" id="total_${i}">0</span>
-        </div>
-      </div>
-    `;
-    container.appendChild(block);
-
-    // Atualiza total em tempo real
-    ["saida", "cartas"].forEach(tipo => {
-      document.getElementById(`${tipo}_${i}`).addEventListener("input", () => updateTotal(i));
-    });
+    const li = document.createElement("li");
+    li.innerText = p + " (" + (scores[i] || 0) + " pts)";
+    list.appendChild(li);
   });
 
-  document.getElementById("round-modal-title").textContent = `Rodada ${rounds.length + 1}`;
-  document.getElementById("round-overlay").classList.remove("hidden");
-
-  // Foca no primeiro campo
-  setTimeout(() => {
-    const first = document.getElementById("saida_0");
-    if (first) { first.focus(); first.select(); }
-  }, 150);
+  renderRoundInputs();
 }
 
-function updateTotal(i) {
-  const saida  = parseInt(document.getElementById(`saida_${i}`).value)  || 0;
-  const cartas = parseInt(document.getElementById(`cartas_${i}`).value) || 0;
-  document.getElementById(`total_${i}`).textContent = saida + cartas;
+// Inputs da rodada
+function renderRoundInputs() {
+  const div = document.getElementById("roundInputs");
+  div.innerHTML = "";
+
+  players.forEach((p, i) => {
+    const input = document.createElement("input");
+    input.placeholder = p;
+    input.type = "number";
+    input.id = "p" + i;
+    div.appendChild(input);
+  });
 }
 
-function closeRoundModal() {
-  document.getElementById("round-overlay").classList.add("hidden");
-}
+// Adicionar rodada
+function addRound() {
+  const target = parseInt(document.getElementById("target").value);
 
-function confirmarRodada() {
-  const round = players.map((_, i) => {
-    const saida  = parseInt(document.getElementById(`saida_${i}`).value)  || 0;
-    const cartas = parseInt(document.getElementById(`cartas_${i}`).value) || 0;
-    return saida + cartas;
+  let round = [];
+
+  players.forEach((p, i) => {
+    const val = parseInt(document.getElementById("p" + i).value) || 0;
+    round.push(val);
   });
 
   rounds.push(round);
-  closeRoundModal();
+
   recalculateScores();
   renderRounds();
-  checkWinner();
-  toggleSections();
-  saveGame();
+  checkWinner(target);
 }
 
-// ─── TOTAIS ──────────────────────────────────────────────
+// Recalcular pontuação
 function recalculateScores() {
   scores = players.map(() => 0);
-  rounds.forEach(r => r.forEach((v, i) => scores[i] += v));
-  renderScoreBoard();
+
+  rounds.forEach(round => {
+    round.forEach((val, i) => {
+      scores[i] += val;
+    });
+  });
+
+  renderPlayers();
+  renderScore();
 }
 
-// ─── PLACAR ──────────────────────────────────────────────
-function renderScoreBoard() {
-  const div = document.getElementById("scoreBoard");
-  div.innerHTML = "";
-  const max = Math.max(...scores, 0);
+// Mostrar placar
+function renderScore() {
+  const list = document.getElementById("score");
+  list.innerHTML = "";
+
   players.forEach((p, i) => {
-    const card = document.createElement("div");
-    card.className = "score-card" + (scores[i] === max && max > 0 ? " winner" : "");
-    card.innerHTML = `<h3>${escHtml(p)}</h3><p>${scores[i] || 0}</p>`;
-    div.appendChild(card);
+    const li = document.createElement("li");
+    li.innerText = p + ": " + scores[i];
+    list.appendChild(li);
   });
 }
 
-// ─── LISTA DE RODADAS ────────────────────────────────────
+// Mostrar rodadas
 function renderRounds() {
   const list = document.getElementById("rounds");
   list.innerHTML = "";
-  rounds.forEach((r, i) => {
+
+  rounds.forEach((round, index) => {
     const li = document.createElement("li");
-    const str = players.map((p, j) => `${escHtml(p)}: ${r[j]}`).join("  ·  ");
-    li.innerHTML = `<span><strong>R${i+1}</strong>  ${str}</span>
-      <button class="btn-delete" onclick="deleteRound(${i})">Excluir</button>`;
+
+    li.innerText = "Rodada " + (index + 1) + ": " + round.join(" | ");
+
+    const btn = document.createElement("button");
+    btn.innerText = "Excluir";
+    btn.className = "delete";
+    btn.onclick = () => deleteRound(index);
+
+    li.appendChild(btn);
+
     list.appendChild(li);
   });
-  document.getElementById("rounds-section").style.display = rounds.length > 0 ? "block" : "none";
 }
 
-function deleteRound(i) {
-  rounds.splice(i, 1);
+// Deletar rodada
+function deleteRound(index) {
+  rounds.splice(index, 1);
   recalculateScores();
   renderRounds();
-  saveGame();
 }
 
-// ─── VERIFICAR VENCEDOR ──────────────────────────────────
-function checkWinner() {
-  const target = parseInt(document.getElementById("target").value);
+// Verificar vencedor
+function checkWinner(target) {
   if (!target) return;
-  if (!scores.some(s => s >= target)) return;
-  const max    = Math.max(...scores);
-  const winner = players[scores.indexOf(max)];
-  try { winSound.play(); } catch(e) {}
-  saveHistory(winner, max);
-  showWinnerModal(winner, max, target);
+
+  const someoneReached = scores.some(score => score >= target);
+  if (!someoneReached) return;
+
+  let maxScore = Math.max(...scores);
+  let winnerIndex = scores.indexOf(maxScore);
+
+  alert("🏆 Vencedor: " + players[winnerIndex] + " com " + maxScore + " pontos!");
 }
 
-// ─── MODAL VENCEDOR ──────────────────────────────────────
-function createWinnerModal() {
-  const overlay = document.createElement("div");
-  overlay.className = "modal-overlay hidden";
-  overlay.id = "winner-overlay";
-  overlay.innerHTML = `
-    <div class="modal">
-      <div class="modal-trophy">🏆</div>
-      <p class="modal-title">Vencedor da partida</p>
-      <p class="modal-winner" id="modal-winner-name"></p>
-      <p class="modal-score" id="modal-winner-score"></p>
-      <div class="modal-divider"></div>
-      <button class="btn btn-primary" onclick="rematchGame()">🔁 Nova partida — mesmas duplas</button>
-      <button class="btn btn-new-players" onclick="newPlayersGame()">👥 Novos jogadores</button>
-      <button class="btn btn-ghost" onclick="verPlacar()">👁 Ver placar final</button>
-    </div>
-  `;
-  document.body.appendChild(overlay);
-}
-
-function showWinnerModal(name, score, target) {
-  document.getElementById("modal-winner-name").textContent  = name;
-  document.getElementById("modal-winner-score").textContent = `${score} pontos — meta era ${target}`;
-  document.getElementById("winner-overlay").classList.remove("hidden");
-}
-
-function fecharModal() {
-  document.getElementById("winner-overlay").classList.add("hidden");
-}
-
-function verPlacar() {
-  fecharModal();
-  document.getElementById("postgame-section").style.display = "block";
-  window.scrollTo({ top: 0, behavior: "smooth" });
-}
-
-// ─── NOVA PARTIDA — MESMAS DUPLAS ────────────────────────
-function rematchGame() {
-  fecharModal();
-  document.getElementById("postgame-section").style.display = "none";
-  rounds = [];
-  scores = players.map(() => 0);
-  saveGame();
-  renderScoreBoard();
-  renderRounds();
-  toggleSections();
-}
-
-// ─── NOVA PARTIDA — NOVOS JOGADORES ─────────────────────
-function newPlayersGame() {
-  fecharModal();
-  document.getElementById("postgame-section").style.display = "none";
-  players = [];
-  rounds  = [];
-  scores  = [];
-  localStorage.removeItem("canastra");
-  document.getElementById("scoreBoard").innerHTML = "";
-  document.getElementById("rounds").innerHTML     = "";
-  document.getElementById("target").value         = "";
-  document.getElementById("name").value           = "";
-  toggleSections();
-}
-
-// ─── REINICIAR ───────────────────────────────────────────
+// Resetar jogo
 function resetGame() {
-  if (!confirm("Reiniciar o jogo? O histórico de rodadas será apagado.")) return;
-  fecharModal();
-  document.getElementById("postgame-section").style.display = "none";
   players = [];
-  rounds  = [];
-  scores  = [];
-  localStorage.removeItem("canastra");
-  document.getElementById("scoreBoard").innerHTML = "";
-  document.getElementById("rounds").innerHTML     = "";
-  document.getElementById("target").value         = "";
-  document.getElementById("name").value           = "";
-  toggleSections();
-}
+  rounds = [];
+  scores = [];
 
-// ─── HISTÓRICO ───────────────────────────────────────────
-function saveHistory(name, score) {
-  const history = JSON.parse(localStorage.getItem("history") || "[]");
-  history.push({ name, score, date: new Date().toLocaleString("pt-BR") });
-  localStorage.setItem("history", JSON.stringify(history));
-  renderHistory();
-}
-
-function clearHistory() {
-  if (!confirm("Apagar todo o histórico de partidas?")) return;
-  localStorage.removeItem("history");
-  renderHistory();
-}
-
-function renderHistory() {
-  const list    = document.getElementById("history");
-  const history = JSON.parse(localStorage.getItem("history") || "[]");
-  list.innerHTML = "";
-  if (history.length === 0) {
-    list.innerHTML = '<li class="empty-msg">Nenhuma partida finalizada ainda.</li>';
-    return;
-  }
-  history.slice().reverse().forEach(h => {
-    const li = document.createElement("li");
-    li.innerHTML = `<strong>${escHtml(h.name)}</strong> — ${h.score} pts<br><small>${h.date}</small>`;
-    list.appendChild(li);
-  });
-}
-
-// ─── UTILS ───────────────────────────────────────────────
-function escHtml(str) {
-  return String(str)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+  document.getElementById("players").innerHTML = "";
+  document.getElementById("roundInputs").innerHTML = "";
+  document.getElementById("score").innerHTML = "";
+  document.getElementById("rounds").innerHTML = "";
 }
