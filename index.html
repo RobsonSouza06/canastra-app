@@ -2,13 +2,22 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
+
+  <!-- VIEWPORT -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+  <!-- PWA CONFIG -->
   <meta name="theme-color" content="#0f172a">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Canastra">
+
+  <!-- 👇 AQUI ESTÁ A CORREÇÃO -->
+  <link rel="manifest" href="./manifest.json">
+
   <title>Canastra Score</title>
+
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -20,7 +29,7 @@
     <h1>Canastra Score</h1>
   </header>
 
-  <!-- AÇÕES PÓS-JOGO -->
+  <!-- PÓS JOGO -->
   <section id="postgame-section" style="display:none">
     <div class="postgame-banner">
       <p class="postgame-label">🏆 Partida encerrada! O que deseja fazer?</p>
@@ -29,13 +38,13 @@
     </div>
   </section>
 
-  <!-- CONFIGURAÇÃO -->
+  <!-- CONFIG -->
   <section class="card">
     <p class="card-label">Pontuação para vencer</p>
     <input type="number" id="target" placeholder="Ex: 3000" inputmode="numeric">
   </section>
 
-  <!-- ADICIONAR DUPLA -->
+  <!-- JOGADORES -->
   <section class="card">
     <p class="card-label">Adicionar dupla / jogador</p>
     <div class="input-row">
@@ -47,18 +56,18 @@
   <!-- PLACAR -->
   <div id="scoreBoard" class="score-board"></div>
 
-  <!-- BOTÃO ADICIONAR RODADA -->
+  <!-- BOTÃO RODADA -->
   <section id="round-section" style="display:none">
     <button class="btn btn-primary" onclick="openRoundModal()">＋ Adicionar Rodada</button>
   </section>
 
-  <!-- LISTA DE RODADAS -->
+  <!-- RODADAS -->
   <section class="card" id="rounds-section" style="display:none">
     <p class="card-label">Rodadas</p>
     <ul id="rounds" class="round-list"></ul>
   </section>
 
-  <!-- BOTÃO REINICIAR -->
+  <!-- RESET -->
   <button class="btn btn-reset" onclick="resetGame()">🔄 Reiniciar Jogo</button>
 
   <!-- HISTÓRICO -->
@@ -74,7 +83,7 @@
 
 </div>
 
-<!-- MODAL DE RODADA -->
+<!-- MODAL -->
 <div class="modal-overlay hidden" id="round-overlay">
   <div class="modal">
     <p class="modal-round-title" id="round-modal-title">Rodada 1</p>
