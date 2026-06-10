@@ -1,159 +1,160 @@
 let players = [];
-let rounds  = [];
-let scores  = [];
+let rounds = [];
+let scores = [];
+let currentRoundData = [];
+let currentPlayerIndexForDetails = 0;
 
 const winSound = new Audio("https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg");
 
-// ─── INIT ────────────────────────────────────────────────
 window.onload = () => {
-  const data = JSON.parse(localStorage.getItem("canastra") || "null");
-  if (data && data.players && data.players.length > 0) {
+  const data = JSON.parse(localStorage.getItem("canastra"));
+  if (data) {
     players = data.players;
-    rounds  = data.rounds || [];
-    if (data.target) document.getElementById("target").value = data.target;
-    recalculateScores();
-    renderRounds();
-    toggleSections();
+    rounds = data.rounds;
+    if (players.length > 0) {
+      document.getElementById("setupCard").style.display = "none";
+      document.getElementById("gamePanel").style.display = "block";
+      recalculateScores();
+      renderRounds();
+    }
   }
   renderHistory();
-  createWinnerModal();
 };
 
-// ─── SALVAR ──────────────────────────────────────────────
 function saveGame() {
-  const target = document.getElementById("target").value;
-  localStorage.setItem("canastra", JSON.stringify({ players, rounds, target }));
+  localStorage.setItem("canastra", JSON.stringify({ players, rounds }));
 }
 
-// ─── ADICIONAR JOGADOR ───────────────────────────────────
 function addPlayer() {
-  const input = document.getElementById("name");
-  const name  = input.value.trim();
-  if (!name) { input.focus(); return; }
-  if (players.length >= 4) { alert("Máximo de 4 jogadores/duplas."); return; }
+  const name = document.getElementById("name").value.trim();
+  if (!name || players.length >= 2) return;
+
   players.push(name);
-  input.value = "";
-  input.focus();
-  renderScoreBoard();
-  toggleSections();
+  document.getElementById("name").value = "";
+
+  renderPlayersList();
+  if (players.length === 2) {
+    document.getElementById("startGameBtn").style.display = "block";
+  }
+}
+
+function renderPlayersList() {
+  const list = document.getElementById("playersList");
+  list.innerHTML = "";
+  players.forEach(p => {
+    const li = document.createElement("li");
+    li.innerText = p;
+    list.appendChild(li);
+  });
+}
+
+function startGame() {
+  if (players.length < 2) return;
+  document.getElementById("setupCard").style.display = "none";
+  document.getElementById("gamePanel").style.display = "block";
+  recalculateScores();
   saveGame();
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  document.getElementById("name").addEventListener("keydown", e => {
-    if (e.key === "Enter") addPlayer();
-  });
-});
-
-// ─── SEÇÕES VISÍVEIS ─────────────────────────────────────
-function toggleSections() {
-  document.getElementById("round-section").style.display  = players.length > 0 ? "block" : "none";
-  document.getElementById("rounds-section").style.display = rounds.length  > 0 ? "block" : "none";
-}
-
-// ─── MODAL DE RODADA ─────────────────────────────────────
 function openRoundModal() {
-  const container = document.getElementById("round-modal-inputs");
-  container.innerHTML = "";
-
-  players.forEach((p, i) => {
-    const block = document.createElement("div");
-    block.className = "round-player-block";
-    block.innerHTML = `
-      <p class="round-player-name">${escHtml(p)}</p>
-      <div class="round-fields">
-        <div class="round-field">
-          <label>Saída</label>
-          <input type="number" id="saida_${i}" inputmode="numeric" placeholder="0">
-        </div>
-        <div class="round-field-sep">+</div>
-        <div class="round-field">
-          <label>Cartas</label>
-          <input type="number" id="cartas_${i}" inputmode="numeric" placeholder="0">
-        </div>
-        <div class="round-field-sep">=</div>
-        <div class="round-field round-field-total">
-          <label>Total</label>
-          <span class="round-total-val" id="total_${i}">0</span>
-        </div>
-      </div>
-    `;
-    container.appendChild(block);
-
-    // Atualiza total em tempo real
-    ["saida", "cartas"].forEach(tipo => {
-      document.getElementById(`${tipo}_${i}`).addEventListener("input", () => updateTotal(i));
-    });
-  });
-
-  document.getElementById("round-modal-title").textContent = `Rodada ${rounds.length + 1}`;
-  document.getElementById("round-overlay").classList.remove("hidden");
-
-  // Foca no primeiro campo
-  setTimeout(() => {
-    const first = document.getElementById("saida_0");
-    if (first) { first.focus(); first.select(); }
-  }, 150);
-}
-
-function updateTotal(i) {
-  const saida  = parseInt(document.getElementById(`saida_${i}`).value)  || 0;
-  const cartas = parseInt(document.getElementById(`cartas_${i}`).value) || 0;
-  document.getElementById(`total_${i}`).textContent = saida + cartas;
+  currentRoundData = players.map(() => 0);
+  renderRoundInputs();
+  document.getElementById("roundModal").style.display = "flex";
 }
 
 function closeRoundModal() {
-  document.getElementById("round-overlay").classList.add("hidden");
+  document.getElementById("roundModal").style.display = "none";
 }
 
-function confirmarRodada() {
-  const round = players.map((_, i) => {
-    const saida  = parseInt(document.getElementById(`saida_${i}`).value)  || 0;
-    const cartas = parseInt(document.getElementById(`cartas_${i}`).value) || 0;
-    return saida + cartas;
+function renderRoundInputs() {
+  const div = document.getElementById("roundInputs");
+  div.innerHTML = "";
+  players.forEach((p, i) => {
+    const btn = document.createElement("button");
+    btn.innerText = `Definir pontos de: ${p}`;
+    btn.style.margin = "8px 0";
+    btn.onclick = () => openDetailsModal(i);
+    div.appendChild(btn);
   });
+}
 
-  rounds.push(round);
+function openDetailsModal(playerIndex) {
+  currentPlayerIndexForDetails = playerIndex;
+  document.getElementById("detailsTitle").innerText = `Pontos de ${players[playerIndex]}`;
+  
+  document.getElementById("limpa").value = 0;
+  document.getElementById("suja").value = 0;
+  document.getElementById("real").value = 0;
+  document.getElementById("meioReal").value = 0;
+  document.getElementById("bate").value = 0;
+  document.getElementById("corrido").value = 0;
+
+  document.getElementById("detailsModal").style.display = "flex";
+}
+
+function savePlayerDetails() {
+  const limpa = (parseInt(document.getElementById("limpa").value) || 0) * 200;
+  const suja = (parseInt(document.getElementById("suja").value) || 0) * 100;
+  const real = (parseInt(document.getElementById("real").value) || 0) * 500;
+  const meioReal = (parseInt(document.getElementById("meioReal").value) || 0) * 300;
+  const bate = (parseInt(document.getElementById("bate").value) || 0) * 100;
+  const corrido = parseInt(document.getElementById("corrido").value) || 0;
+
+  const total = limpa + suja + real + meioReal + bate + corrido;
+  currentRoundData[currentPlayerIndexForDetails] = total;
+
+  document.getElementById("detailsModal").style.display = "none";
+}
+
+function addRound() {
+  rounds.push([...currentRoundData]);
   closeRoundModal();
   recalculateScores();
   renderRounds();
   checkWinner();
-  toggleSections();
   saveGame();
 }
 
-// ─── TOTAIS ──────────────────────────────────────────────
 function recalculateScores() {
   scores = players.map(() => 0);
-  rounds.forEach(r => r.forEach((v, i) => scores[i] += v));
+  rounds.forEach(r => {
+    r.forEach((v, i) => {
+      if (scores[i] !== undefined) scores[i] += v;
+    });
+  });
   renderScoreBoard();
 }
 
-// ─── PLACAR ──────────────────────────────────────────────
 function renderScoreBoard() {
   const div = document.getElementById("scoreBoard");
   div.innerHTML = "";
-  const max = Math.max(...scores, 0);
+  let max = Math.max(...scores, 0);
+
   players.forEach((p, i) => {
     const card = document.createElement("div");
-    card.className = "score-card" + (scores[i] === max && max > 0 ? " winner" : "");
-    card.innerHTML = `<h3>${escHtml(p)}</h3><p>${scores[i] || 0}</p>`;
+    card.className = "score-card";
+    if (scores[i] === max && max > 0) card.classList.add("winner");
+    card.innerHTML = `<h3>${p}</h3><p>${scores[i] || 0}</p>`;
     div.appendChild(card);
   });
 }
 
-// ─── LISTA DE RODADAS ────────────────────────────────────
 function renderRounds() {
   const list = document.getElementById("rounds");
   list.innerHTML = "";
   rounds.forEach((r, i) => {
     const li = document.createElement("li");
-    const str = players.map((p, j) => `${escHtml(p)}: ${r[j]}`).join("  ·  ");
-    li.innerHTML = `<span><strong>R${i+1}</strong>  ${str}</span>
-      <button class="btn-delete" onclick="deleteRound(${i})">Excluir</button>`;
+    const span = document.createElement("span");
+    span.innerText = `Rodada ${i + 1}: ` + r.map((v, idx) => `${players[idx]}: ${v}`).join(" | ");
+    li.appendChild(span);
+
+    const btn = document.createElement("button");
+    btn.innerText = "Excluir";
+    btn.className = "delete";
+    btn.onclick = () => deleteRound(i);
+    li.appendChild(btn);
     list.appendChild(li);
   });
-  document.getElementById("rounds-section").style.display = rounds.length > 0 ? "block" : "none";
 }
 
 function deleteRound(i) {
@@ -163,131 +164,46 @@ function deleteRound(i) {
   saveGame();
 }
 
-// ─── VERIFICAR VENCEDOR ──────────────────────────────────
 function checkWinner() {
   const target = parseInt(document.getElementById("target").value);
   if (!target) return;
-  if (!scores.some(s => s >= target)) return;
-  const max    = Math.max(...scores);
-  const winner = players[scores.indexOf(max)];
-  try { winSound.play(); } catch(e) {}
-  saveHistory(winner, max);
-  showWinnerModal(winner, max, target);
+
+  if (scores.some(s => s >= target)) {
+    let max = Math.max(...scores);
+    let winner = players[scores.indexOf(max)];
+    try { winSound.play(); } catch(e){}
+    saveHistory(winner, max);
+    alert(`🏆 ${winner} venceu a partida com ${max} pontos!`);
+  }
 }
 
-// ─── MODAL VENCEDOR ──────────────────────────────────────
-function createWinnerModal() {
-  const overlay = document.createElement("div");
-  overlay.className = "modal-overlay hidden";
-  overlay.id = "winner-overlay";
-  overlay.innerHTML = `
-    <div class="modal">
-      <div class="modal-trophy">🏆</div>
-      <p class="modal-title">Vencedor da partida</p>
-      <p class="modal-winner" id="modal-winner-name"></p>
-      <p class="modal-score" id="modal-winner-score"></p>
-      <div class="modal-divider"></div>
-      <button class="btn btn-primary" onclick="rematchGame()">🔁 Nova partida — mesmas duplas</button>
-      <button class="btn btn-new-players" onclick="newPlayersGame()">👥 Novos jogadores</button>
-      <button class="btn btn-ghost" onclick="verPlacar()">👁 Ver placar final</button>
-    </div>
-  `;
-  document.body.appendChild(overlay);
-}
-
-function showWinnerModal(name, score, target) {
-  document.getElementById("modal-winner-name").textContent  = name;
-  document.getElementById("modal-winner-score").textContent = `${score} pontos — meta era ${target}`;
-  document.getElementById("winner-overlay").classList.remove("hidden");
-}
-
-function fecharModal() {
-  document.getElementById("winner-overlay").classList.add("hidden");
-}
-
-function verPlacar() {
-  fecharModal();
-  document.getElementById("postgame-section").style.display = "block";
-  window.scrollTo({ top: 0, behavior: "smooth" });
-}
-
-// ─── NOVA PARTIDA — MESMAS DUPLAS ────────────────────────
-function rematchGame() {
-  fecharModal();
-  document.getElementById("postgame-section").style.display = "none";
-  rounds = [];
-  scores = players.map(() => 0);
-  saveGame();
-  renderScoreBoard();
-  renderRounds();
-  toggleSections();
-}
-
-// ─── NOVA PARTIDA — NOVOS JOGADORES ─────────────────────
-function newPlayersGame() {
-  fecharModal();
-  document.getElementById("postgame-section").style.display = "none";
-  players = [];
-  rounds  = [];
-  scores  = [];
-  localStorage.removeItem("canastra");
-  document.getElementById("scoreBoard").innerHTML = "";
-  document.getElementById("rounds").innerHTML     = "";
-  document.getElementById("target").value         = "";
-  document.getElementById("name").value           = "";
-  toggleSections();
-}
-
-// ─── REINICIAR ───────────────────────────────────────────
-function resetGame() {
-  if (!confirm("Reiniciar o jogo? O histórico de rodadas será apagado.")) return;
-  fecharModal();
-  document.getElementById("postgame-section").style.display = "none";
-  players = [];
-  rounds  = [];
-  scores  = [];
-  localStorage.removeItem("canastra");
-  document.getElementById("scoreBoard").innerHTML = "";
-  document.getElementById("rounds").innerHTML     = "";
-  document.getElementById("target").value         = "";
-  document.getElementById("name").value           = "";
-  toggleSections();
-}
-
-// ─── HISTÓRICO ───────────────────────────────────────────
 function saveHistory(name, score) {
-  const history = JSON.parse(localStorage.getItem("history") || "[]");
-  history.push({ name, score, date: new Date().toLocaleString("pt-BR") });
+  let history = JSON.parse(localStorage.getItem("history")) || [];
+  history.push({ name, score, date: new Date().toLocaleString() });
   localStorage.setItem("history", JSON.stringify(history));
   renderHistory();
 }
 
-function clearHistory() {
-  if (!confirm("Apagar todo o histórico de partidas?")) return;
-  localStorage.removeItem("history");
-  renderHistory();
-}
-
 function renderHistory() {
-  const list    = document.getElementById("history");
-  const history = JSON.parse(localStorage.getItem("history") || "[]");
+  const list = document.getElementById("history");
   list.innerHTML = "";
-  if (history.length === 0) {
-    list.innerHTML = '<li class="empty-msg">Nenhuma partida finalizada ainda.</li>';
-    return;
-  }
+  let history = JSON.parse(localStorage.getItem("history")) || [];
   history.slice().reverse().forEach(h => {
     const li = document.createElement("li");
-    li.innerHTML = `<strong>${escHtml(h.name)}</strong> — ${h.score} pts<br><small>${h.date}</small>`;
+    li.innerText = `${h.name} - ${h.score} pts (${h.date})`;
     list.appendChild(li);
   });
 }
 
-// ─── UTILS ───────────────────────────────────────────────
-function escHtml(str) {
-  return String(str)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+function resetGame() {
+  players = [];
+  rounds = [];
+  scores = [];
+  localStorage.removeItem("canastra");
+  document.getElementById("scoreBoard").innerHTML = "";
+  document.getElementById("rounds").innerHTML = "";
+  document.getElementById("playersList").innerHTML = "";
+  document.getElementById("startGameBtn").style.display = "none";
+  document.getElementById("setupCard").style.display = "block";
+  document.getElementById("gamePanel").style.display = "none";
 }
