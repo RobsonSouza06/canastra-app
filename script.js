@@ -34,7 +34,6 @@ function addPlayer() {
   players.push(name);
   input.value = "";
   input.focus();
-  renderRoundInputs();
   renderScoreBoard();
   toggleSections();
   saveGame();
@@ -52,34 +51,75 @@ function toggleSections() {
   document.getElementById("rounds-section").style.display = rounds.length  > 0 ? "block" : "none";
 }
 
-// ─── INPUTS DE RODADA ────────────────────────────────────
-function renderRoundInputs() {
-  const div = document.getElementById("roundInputs");
-  div.innerHTML = "";
+// ─── MODAL DE RODADA ─────────────────────────────────────
+function openRoundModal() {
+  const container = document.getElementById("round-modal-inputs");
+  container.innerHTML = "";
+
   players.forEach((p, i) => {
-    const row = document.createElement("div");
-    row.className = "round-input-row";
-    row.innerHTML = `
-      <span class="round-input-label">${escHtml(p)}</span>
-      <input type="number" id="p${i}" inputmode="numeric" placeholder="0">
+    const block = document.createElement("div");
+    block.className = "round-player-block";
+    block.innerHTML = `
+      <p class="round-player-name">${escHtml(p)}</p>
+      <div class="round-fields">
+        <div class="round-field">
+          <label>Saída</label>
+          <input type="number" id="saida_${i}" inputmode="numeric" placeholder="0">
+        </div>
+        <div class="round-field-sep">+</div>
+        <div class="round-field">
+          <label>Cartas</label>
+          <input type="number" id="cartas_${i}" inputmode="numeric" placeholder="0">
+        </div>
+        <div class="round-field-sep">=</div>
+        <div class="round-field round-field-total">
+          <label>Total</label>
+          <span class="round-total-val" id="total_${i}">0</span>
+        </div>
+      </div>
     `;
-    div.appendChild(row);
+    container.appendChild(block);
+
+    // Atualiza total em tempo real
+    ["saida", "cartas"].forEach(tipo => {
+      document.getElementById(`${tipo}_${i}`).addEventListener("input", () => updateTotal(i));
+    });
   });
+
+  document.getElementById("round-modal-title").textContent = `Rodada ${rounds.length + 1}`;
+  document.getElementById("round-overlay").classList.remove("hidden");
+
+  // Foca no primeiro campo
+  setTimeout(() => {
+    const first = document.getElementById("saida_0");
+    if (first) { first.focus(); first.select(); }
+  }, 150);
 }
 
-// ─── ADICIONAR RODADA ────────────────────────────────────
-function addRound() {
+function updateTotal(i) {
+  const saida  = parseInt(document.getElementById(`saida_${i}`).value)  || 0;
+  const cartas = parseInt(document.getElementById(`cartas_${i}`).value) || 0;
+  document.getElementById(`total_${i}`).textContent = saida + cartas;
+}
+
+function closeRoundModal() {
+  document.getElementById("round-overlay").classList.add("hidden");
+}
+
+function confirmarRodada() {
   const round = players.map((_, i) => {
-    const val = parseInt(document.getElementById("p" + i).value);
-    return isNaN(val) ? 0 : val;
+    const saida  = parseInt(document.getElementById(`saida_${i}`).value)  || 0;
+    const cartas = parseInt(document.getElementById(`cartas_${i}`).value) || 0;
+    return saida + cartas;
   });
+
   rounds.push(round);
+  closeRoundModal();
   recalculateScores();
   renderRounds();
   checkWinner();
   toggleSections();
   saveGame();
-  players.forEach((_, i) => { document.getElementById("p" + i).value = ""; });
 }
 
 // ─── TOTAIS ──────────────────────────────────────────────
@@ -165,7 +205,6 @@ function fecharModal() {
   document.getElementById("winner-overlay").classList.add("hidden");
 }
 
-// "Ver placar final" — fecha modal e mostra banner pós-jogo
 function verPlacar() {
   fecharModal();
   document.getElementById("postgame-section").style.display = "block";
@@ -181,7 +220,6 @@ function rematchGame() {
   saveGame();
   renderScoreBoard();
   renderRounds();
-  renderRoundInputs();
   toggleSections();
 }
 
@@ -193,15 +231,14 @@ function newPlayersGame() {
   rounds  = [];
   scores  = [];
   localStorage.removeItem("canastra");
-  document.getElementById("scoreBoard").innerHTML  = "";
-  document.getElementById("roundInputs").innerHTML = "";
-  document.getElementById("rounds").innerHTML      = "";
-  document.getElementById("target").value          = "";
-  document.getElementById("name").value            = "";
+  document.getElementById("scoreBoard").innerHTML = "";
+  document.getElementById("rounds").innerHTML     = "";
+  document.getElementById("target").value         = "";
+  document.getElementById("name").value           = "";
   toggleSections();
 }
 
-// ─── REINICIAR (botão da tela principal) ─────────────────
+// ─── REINICIAR ───────────────────────────────────────────
 function resetGame() {
   if (!confirm("Reiniciar o jogo? O histórico de rodadas será apagado.")) return;
   fecharModal();
@@ -210,11 +247,10 @@ function resetGame() {
   rounds  = [];
   scores  = [];
   localStorage.removeItem("canastra");
-  document.getElementById("scoreBoard").innerHTML  = "";
-  document.getElementById("roundInputs").innerHTML = "";
-  document.getElementById("rounds").innerHTML      = "";
-  document.getElementById("target").value          = "";
-  document.getElementById("name").value            = "";
+  document.getElementById("scoreBoard").innerHTML = "";
+  document.getElementById("rounds").innerHTML     = "";
+  document.getElementById("target").value         = "";
+  document.getElementById("name").value           = "";
   toggleSections();
 }
 

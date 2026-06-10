@@ -419,3 +419,95 @@ input::placeholder {
   text-align: center;
   margin-bottom: 4px;
 }
+
+/* ─── MODAL DE RODADA ─── */
+.modal-round-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #f8fafc;
+  margin-bottom: 2px;
+}
+
+.modal-round-sub {
+  font-size: 13px;
+  color: #64748b;
+  margin-bottom: 16px;
+}
+
+.round-player-block {
+  background: #0f172a;
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 10px;
+}
+
+.round-player-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #94a3b8;
+  margin-bottom: 10px;
+}
+
+.round-fields {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.round-field {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+}
+
+.round-field label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: .4px;
+  margin-bottom: 5px;
+}
+
+.round-field input {
+  width: 100%;
+  padding: 10px 6px;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.round-field-sep {
+  font-size: 20px;
+  color: #475569;
+  padding-bottom: 8px;
+  flex-shrink: 0;
+}
+
+.round-field-total {
+  flex: 0.9;
+}
+
+.round-total-val {
+  font-size: 22px;
+  font-weight: 700;
+  color: #22c55e;
+  display: block;
+  text-align: center;
+  padding: 8px 4px;
+  background: #0f172a;
+  border: 1.5px solid #22c55e33;
+  border-radius: 10px;
+  width: 100%;
+  min-width: 54px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.modal-actions .btn {
+  flex: 1;
+}

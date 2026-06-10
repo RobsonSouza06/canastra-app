@@ -47,11 +47,9 @@
   <!-- PLACAR -->
   <div id="scoreBoard" class="score-board"></div>
 
-  <!-- RODADA -->
-  <section class="card" id="round-section" style="display:none">
-    <p class="card-label">Pontos da rodada</p>
-    <div id="roundInputs"></div>
-    <button class="btn btn-primary" onclick="addRound()">✔ Adicionar Rodada</button>
+  <!-- BOTÃO ADICIONAR RODADA -->
+  <section id="round-section" style="display:none">
+    <button class="btn btn-primary" onclick="openRoundModal()">＋ Adicionar Rodada</button>
   </section>
 
   <!-- LISTA DE RODADAS -->
@@ -74,6 +72,22 @@
     </ul>
   </section>
 
+</div>
+
+<!-- MODAL DE RODADA -->
+<div class="modal-overlay hidden" id="round-overlay">
+  <div class="modal">
+    <p class="modal-round-title" id="round-modal-title">Rodada 1</p>
+    <p class="modal-round-sub">Preencha os pontos de cada dupla</p>
+
+    <div id="round-modal-inputs"></div>
+
+    <div class="modal-divider"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeRoundModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="confirmarRodada()">✔ Confirmar</button>
+    </div>
+  </div>
 </div>
 
 <script src="script.js"></script>
