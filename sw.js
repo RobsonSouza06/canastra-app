@@ -1,4 +1,4 @@
-const CACHE_NAME = "canastra-cache-v5";
+const CACHE_NAME = "canastra-cache-v6";
 
 const urlsToCache = [
   "/canastra-app/",
