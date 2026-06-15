@@ -385,18 +385,33 @@ function createHistoryModal() {
   overlay.id = "history-overlay";
   overlay.innerHTML = `
     <div class="modal modal-history">
-      <p class="modal-title" style="font-size:18px;font-weight:700;color:#f8fafc;margin-bottom:16px">📊 Histórico de Partidas</p>
+      <p class="modal-title" style="font-size:18px;font-weight:700;color:#f8fafc;margin-bottom:4px">📊 Histórico de Partidas</p>
+      <p style="font-size:13px;color:#64748b;margin-bottom:16px">Selecione as duas duplas para ver o confronto</p>
 
-      <div class="history-filter">
-        <p class="card-label">Filtrar por dupla</p>
-        <div class="history-filter-row">
+      <!-- SELEÇÃO DE DUPLAS -->
+      <div class="confronto-selects">
+        <div class="confronto-select-wrap">
+          <p class="card-label" style="margin-bottom:6px">Dupla 1</p>
           <select id="filter-team1" class="history-select">
-            <option value="">Todas as duplas</option>
+            <option value="">Selecionar...</option>
+          </select>
+        </div>
+        <div class="confronto-vs">VS</div>
+        <div class="confronto-select-wrap">
+          <p class="card-label" style="margin-bottom:6px">Dupla 2</p>
+          <select id="filter-team2" class="history-select">
+            <option value="">Selecionar...</option>
           </select>
         </div>
       </div>
 
-      <div id="history-stats" class="history-stats"></div>
+      <!-- PLACAR DO CONFRONTO -->
+      <div id="history-confronto" class="history-confronto" style="display:none"></div>
+
+      <!-- RANKING GERAL (quando nenhuma dupla selecionada) -->
+      <div id="history-ranking-geral"></div>
+
+      <!-- LISTA DE PARTIDAS -->
       <div id="history-modal-list" class="history-modal-list"></div>
 
       <div class="modal-divider" style="margin-top:12px"></div>
@@ -406,101 +421,202 @@ function createHistoryModal() {
   document.body.appendChild(overlay);
 
   document.getElementById("filter-team1").addEventListener("change", renderHistoryModal);
+  document.getElementById("filter-team2").addEventListener("change", renderHistoryModal);
 }
 
 async function openHistoryModal() {
   const overlay = document.getElementById("history-overlay");
   overlay.classList.remove("hidden");
 
-  // Carrega do Firebase
+  // Loading
+  document.getElementById("history-ranking-geral").innerHTML =
+    '<p style="font-size:13px;color:#64748b;text-align:center;padding:16px 0">Carregando...</p>';
+
   const partidas = await loadHistoryFromFirebase();
 
-  // Popula o select com todas as duplas encontradas
+  // Monta lista de duplas únicas
   const teams = new Set();
   partidas.forEach(p => {
     if (p.players) p.players.forEach(t => teams.add(t));
     else { if (p.winner) teams.add(p.winner); if (p.loser) teams.add(p.loser); }
   });
-
-  // Adiciona defaults sempre
   DEFAULT_TEAMS.forEach(t => teams.add(t));
 
-  const sel = document.getElementById("filter-team1");
-  sel.innerHTML = '<option value="">Todas as duplas</option>';
-  [...teams].sort().forEach(t => {
-    const opt = document.createElement("option");
-    opt.value = t; opt.textContent = t;
-    sel.appendChild(opt);
+  const teamsSorted = [...teams].sort();
+
+  ["filter-team1", "filter-team2"].forEach(selId => {
+    const sel = document.getElementById(selId);
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">Selecionar...</option>';
+    teamsSorted.forEach(t => {
+      const opt = document.createElement("option");
+      opt.value = t; opt.textContent = t;
+      if (t === cur) opt.selected = true;
+      sel.appendChild(opt);
+    });
   });
 
-  // Guarda no window para uso posterior
+  // Pré-seleciona as duplas default se existirem
+  if (!document.getElementById("filter-team1").value && DEFAULT_TEAMS[0]) {
+    document.getElementById("filter-team1").value = DEFAULT_TEAMS[0];
+  }
+  if (!document.getElementById("filter-team2").value && DEFAULT_TEAMS[1]) {
+    document.getElementById("filter-team2").value = DEFAULT_TEAMS[1];
+  }
+
   window._partidas = partidas;
   renderHistoryModal();
 }
 
 function renderHistoryModal() {
-  const partidas  = window._partidas || [];
-  const filterTeam = document.getElementById("filter-team1").value;
+  const partidas = window._partidas || [];
+  const team1    = document.getElementById("filter-team1").value;
+  const team2    = document.getElementById("filter-team2").value;
 
-  let filtered = partidas;
-  if (filterTeam) {
-    filtered = partidas.filter(p => {
-      const inPlayers = p.players && p.players.includes(filterTeam);
-      const isWinner  = p.winner === filterTeam;
-      const isLoser   = p.loser  === filterTeam;
-      return inPlayers || isWinner || isLoser;
+  const confrontoDiv = document.getElementById("history-confronto");
+  const rankingDiv   = document.getElementById("history-ranking-geral");
+  const listDiv      = document.getElementById("history-modal-list");
+
+  // ── MODO CONFRONTO: as duas duplas selecionadas ──────────
+  if (team1 && team2 && team1 !== team2) {
+    confrontoDiv.style.display = "block";
+    rankingDiv.innerHTML = "";
+
+    // Partidas onde as DUAS duplas estavam presentes
+    const confrontos = partidas.filter(p => {
+      if (!p.players) return (p.winner === team1 || p.loser === team1) &&
+                             (p.winner === team2 || p.loser === team2);
+      return p.players.includes(team1) && p.players.includes(team2);
     });
+
+    const wins1  = confrontos.filter(p => p.winner === team1).length;
+    const wins2  = confrontos.filter(p => p.winner === team2).length;
+    const total  = confrontos.length;
+    const lider  = wins1 > wins2 ? team1 : wins2 > wins1 ? team2 : null;
+
+    confrontoDiv.innerHTML = `
+      <!-- PLACAR GRANDE -->
+      <div class="confronto-placar">
+        <div class="confronto-time ${wins1 >= wins2 ? 'confronto-lider' : ''}">
+          <div class="confronto-nome">${escHtml(team1)}</div>
+          <div class="confronto-pts">${wins1}</div>
+          <div class="confronto-label">vitórias</div>
+        </div>
+        <div class="confronto-x">×</div>
+        <div class="confronto-time ${wins2 >= wins1 ? 'confronto-lider' : ''}">
+          <div class="confronto-nome">${escHtml(team2)}</div>
+          <div class="confronto-pts">${wins2}</div>
+          <div class="confronto-label">vitórias</div>
+        </div>
+      </div>
+
+      <!-- BARRA DE PROGRESSO -->
+      ${total > 0 ? `
+      <div class="confronto-barra-wrap">
+        <div class="confronto-barra">
+          <div class="confronto-barra-fill" style="width:${Math.round(wins1/total*100)}%"></div>
+        </div>
+        <div class="confronto-barra-labels">
+          <span style="color:#22c55e">${Math.round(wins1/total*100)}%</span>
+          <span style="color:#64748b">${total} partidas</span>
+          <span style="color:#3b82f6">${Math.round(wins2/total*100)}%</span>
+        </div>
+      </div>` : ""}
+
+      <!-- LÍDER -->
+      ${lider ? `<div class="confronto-lider-badge">🏆 ${escHtml(lider)} está na frente!</div>` :
+        total > 0 ? `<div class="confronto-lider-badge" style="background:#334155;color:#94a3b8">🤝 Empate técnico!</div>` : ""}
+    `;
+
+    // Lista das partidas do confronto
+    if (confrontos.length === 0) {
+      listDiv.innerHTML = '<p class="empty-msg" style="padding:12px 0;text-align:center">Nenhuma partida entre essas duplas ainda.</p>';
+    } else {
+      listDiv.innerHTML = `
+        <p class="card-label" style="margin:12px 0 8px">Partidas do confronto</p>
+        ${confrontos.map(p => {
+          const i1 = p.players ? p.players.indexOf(team1) : -1;
+          const i2 = p.players ? p.players.indexOf(team2) : -1;
+          const s1 = i1 >= 0 && p.scores ? p.scores[i1] : "—";
+          const s2 = i2 >= 0 && p.scores ? p.scores[i2] : "—";
+          const ganhou = p.winner === team1 ? team1 : team2;
+          return `
+            <div class="history-item">
+              <div class="history-item-confronto">
+                <span class="${p.winner === team1 ? 'ci-vencedor' : 'ci-perdedor'}">${escHtml(team1)}<br><strong>${s1}</strong></span>
+                <span class="ci-x">×</span>
+                <span class="${p.winner === team2 ? 'ci-vencedor' : 'ci-perdedor'}">${escHtml(team2)}<br><strong>${s2}</strong></span>
+              </div>
+              <div class="history-item-date" style="text-align:center;margin-top:4px">${p.date || ""}</div>
+            </div>
+          `;
+        }).join("")}
+      `;
+    }
+    return;
   }
 
-  // Stats por dupla
-  const statsDiv = document.getElementById("history-stats");
-  if (filterTeam) {
-    const wins   = filtered.filter(p => p.winner === filterTeam).length;
-    const losses = filtered.filter(p => p.loser  === filterTeam || (p.players && p.players.includes(filterTeam) && p.winner !== filterTeam)).length;
-    const total  = filtered.length;
-    statsDiv.innerHTML = `
-      <div class="history-stats-box">
+  // ── MODO UMA DUPLA: stats individuais ───────────────────
+  confrontoDiv.style.display = "none";
+
+  if (team1 && !team2 || !team1 && team2) {
+    const team = team1 || team2;
+    const filtradas = partidas.filter(p => {
+      if (p.players) return p.players.includes(team);
+      return p.winner === team || p.loser === team;
+    });
+    const wins  = filtradas.filter(p => p.winner === team).length;
+    const total = filtradas.length;
+
+    rankingDiv.innerHTML = `
+      <div class="history-stats-box" style="margin-bottom:12px">
         <div class="stat-item"><span class="stat-num" style="color:#22c55e">${wins}</span><span class="stat-label">Vitórias</span></div>
-        <div class="stat-item"><span class="stat-num" style="color:#ef4444">${losses}</span><span class="stat-label">Derrotas</span></div>
+        <div class="stat-item"><span class="stat-num" style="color:#ef4444">${total - wins}</span><span class="stat-label">Derrotas</span></div>
         <div class="stat-item"><span class="stat-num">${total}</span><span class="stat-label">Partidas</span></div>
         <div class="stat-item"><span class="stat-num" style="color:#f59e0b">${total > 0 ? Math.round(wins/total*100) : 0}%</span><span class="stat-label">Aproveit.</span></div>
       </div>
     `;
-  } else {
-    // Ranking geral
-    const wins = {};
-    partidas.forEach(p => {
-      if (!p.winner) return;
-      wins[p.winner] = (wins[p.winner] || 0) + 1;
+    listDiv.innerHTML = filtradas.length === 0
+      ? '<p class="empty-msg" style="padding:12px 0">Nenhuma partida encontrada.</p>'
+      : filtradas.map(p => `
+          <div class="history-item">
+            <div class="history-item-winner">${p.winner === team ? "🏆" : "❌"} ${escHtml(p.winner === team ? "Vitória" : "Derrota")}</div>
+            ${p.players && p.players.length > 1 ? `<div class="history-item-sub">${p.players.map((pl, i) => `${escHtml(pl)}: ${p.scores ? p.scores[i] : "?"}`).join("  ·  ")}</div>` : ""}
+            <div class="history-item-date">${p.date || ""}</div>
+          </div>
+        `).join("");
+    return;
+  }
+
+  // ── MODO GERAL: ranking de todas as duplas ───────────────
+  const wins = {};
+  const totais = {};
+  partidas.forEach(p => {
+    if (!p.winner) return;
+    wins[p.winner]   = (wins[p.winner]   || 0) + 1;
+    if (p.players) p.players.forEach(pl => {
+      totais[pl] = (totais[pl] || 0) + 1;
     });
-    const ranking = Object.entries(wins).sort((a, b) => b[1] - a[1]);
-    statsDiv.innerHTML = ranking.length > 0 ? `
-      <div class="history-ranking">
-        <p class="card-label" style="margin-bottom:8px">🏆 Ranking geral</p>
-        ${ranking.map(([name, w], i) => `
+  });
+  const ranking = Object.entries(wins).sort((a, b) => b[1] - a[1]);
+
+  rankingDiv.innerHTML = ranking.length > 0 ? `
+    <div class="history-ranking" style="margin-bottom:12px">
+      <p class="card-label" style="margin-bottom:8px">🏆 Ranking geral — selecione as duplas acima para ver o confronto</p>
+      ${ranking.map(([name, w], i) => {
+        const t = totais[name] || w;
+        return `
           <div class="ranking-row">
             <span class="ranking-pos">${i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i+1}º`}</span>
             <span class="ranking-name">${escHtml(name)}</span>
-            <span class="ranking-wins">${w} ${w === 1 ? "vitória" : "vitórias"}</span>
+            <span class="ranking-wins">${w}/${t} — ${Math.round(w/t*100)}%</span>
           </div>
-        `).join("")}
-      </div>
-    ` : "";
-  }
-
-  // Lista de partidas
-  const list = document.getElementById("history-modal-list");
-  if (filtered.length === 0) {
-    list.innerHTML = '<p class="empty-msg" style="padding:12px 0">Nenhuma partida encontrada.</p>';
-    return;
-  }
-  list.innerHTML = filtered.map(p => `
-    <div class="history-item">
-      <div class="history-item-winner">🏆 ${escHtml(p.winner || "—")}</div>
-      ${p.players && p.players.length > 1 ? `<div class="history-item-sub">${p.players.map((pl, i) => `${escHtml(pl)}: ${p.scores ? p.scores[i] : "?"}`).join("  ·  ")}</div>` : ""}
-      <div class="history-item-date">${p.date || ""}</div>
+        `;
+      }).join("")}
     </div>
-  `).join("");
+  ` : '<p class="empty-msg" style="padding:12px 0;text-align:center">Nenhuma partida registrada ainda.</p>';
+
+  listDiv.innerHTML = "";
 }
 
 function closeHistoryModal() {
