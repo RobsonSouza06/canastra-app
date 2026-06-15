@@ -21,15 +21,25 @@
     <h1>Contador de Pontos Canastra</h1>
   </header>
 
+  <!-- BARRA DE AÇÕES RÁPIDAS -->
+  <div class="action-bar">
+    <button class="btn-action" onclick="openHistoryModal()">📊 Ver Histórico</button>
+    <button class="btn-action btn-action-admin" onclick="openAdminModal()">⚙️ Admin</button>
+  </div>
+
   <!-- SETUP (visível antes de jogar) -->
   <div id="setup-section">
+
     <section class="card">
       <p class="card-label">Pontuação para vencer</p>
       <input type="number" id="target" placeholder="Ex: 3000" inputmode="numeric">
     </section>
 
+    <!-- DUPLAS DEFAULT -->
+    <section class="card" id="default-teams"></section>
+
     <section class="card">
-      <p class="card-label">Adicionar dupla / jogador</p>
+      <p class="card-label">Ou adicione uma dupla diferente</p>
       <div class="input-row">
         <input type="text" id="name" placeholder="Nome da dupla">
         <button class="btn-add" onclick="addPlayer()">+</button>
@@ -54,8 +64,6 @@
         <button class="btn btn-warning" onclick="rematchNewScore()">🎯 Mesmas duplas, pontuação diferente</button>
         <button class="btn btn-new-players" onclick="newPlayersGame()">👥 Novos jogadores</button>
       </div>
-
-      <!-- Campo nova pontuação (oculto até clicar em "pontuação diferente") -->
       <div id="new-score-section" style="display:none" class="card">
         <p class="card-label">Nova pontuação para vencer</p>
         <input type="number" id="new-target" placeholder="Ex: 3000" inputmode="numeric">
@@ -78,11 +86,11 @@
 
   </div>
 
-  <!-- HISTÓRICO (sempre visível) -->
+  <!-- HISTÓRICO RÁPIDO (últimas 5) -->
   <section class="card">
     <div class="history-header">
-      <p class="card-label" style="margin-bottom:0">Histórico de partidas</p>
-      <button class="btn-clear-history" onclick="clearHistory()">🗑 Limpar</button>
+      <p class="card-label" style="margin-bottom:0">Últimas partidas</p>
+      <button class="btn-action btn-action-sm" onclick="openHistoryModal()">Ver tudo</button>
     </div>
     <ul id="history" class="history-list" style="margin-top:10px">
       <li class="empty-msg">Nenhuma partida finalizada ainda.</li>

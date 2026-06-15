@@ -1,16 +1,60 @@
-let players = [];
-let rounds  = [];
-let scores  = [];
+// ─── FIREBASE CONFIG ─────────────────────────────────────
+const FIREBASE_URL = "https://canastra-score-default-rtdb.firebaseio.com";
+
+// ─── DUPLAS DEFAULT ──────────────────────────────────────
+const DEFAULT_TEAMS = ["Jango/Rosane", "Robson/Jenny"];
+
+// ─── ESTADO DO JOGO ──────────────────────────────────────
+let players     = [];
+let rounds      = [];
+let scores      = [];
 let gameStarted = false;
- 
+
 const winSound = new Audio("https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg");
- 
+
+// ─── FIREBASE HELPERS ────────────────────────────────────
+async function fbGet(path) {
+  try {
+    const res = await fetch(`${FIREBASE_URL}/${path}.json`);
+    return await res.json();
+  } catch (e) { return null; }
+}
+
+async function fbPush(path, data) {
+  try {
+    const res = await fetch(`${FIREBASE_URL}/${path}.json`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data)
+    });
+    return await res.json();
+  } catch (e) { return null; }
+}
+
+async function fbDelete(path) {
+  try {
+    await fetch(`${FIREBASE_URL}/${path}.json`, { method: "DELETE" });
+    return true;
+  } catch (e) { return false; }
+}
+
+async function fbSet(path, data) {
+  try {
+    await fetch(`${FIREBASE_URL}/${path}.json`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data)
+    });
+    return true;
+  } catch (e) { return false; }
+}
+
 // ─── INIT ────────────────────────────────────────────────
 window.onload = () => {
   const data = JSON.parse(localStorage.getItem("canastra") || "null");
   if (data && data.players && data.players.length > 0) {
-    players = data.players;
-    rounds  = data.rounds || [];
+    players     = data.players;
+    rounds      = data.rounds || [];
     gameStarted = data.gameStarted || false;
     if (data.target) document.getElementById("target").value = data.target;
     recalculateScores();
@@ -22,52 +66,101 @@ window.onload = () => {
       renderScoreBoardSetup();
       toggleBtnJogar();
     }
+  } else {
+    renderDefaultTeams();
   }
   renderHistory();
   createWinnerModal();
+  createHistoryModal();
+  createAdminModal();
 };
- 
-// ─── SALVAR ──────────────────────────────────────────────
+
+// ─── DUPLAS DEFAULT ──────────────────────────────────────
+function renderDefaultTeams() {
+  const div = document.getElementById("default-teams");
+  if (!div) return;
+  div.innerHTML = "";
+
+  const label = document.createElement("p");
+  label.className = "card-label";
+  label.textContent = "Duplas rápidas";
+  div.appendChild(label);
+
+  const grid = document.createElement("div");
+  grid.className = "default-teams-grid";
+
+  DEFAULT_TEAMS.forEach(team => {
+    const btn = document.createElement("button");
+    btn.className = "btn-default-team";
+    btn.textContent = team;
+    btn.onclick = () => addDefaultTeam(team, btn);
+    grid.appendChild(btn);
+  });
+
+  div.appendChild(grid);
+}
+
+function addDefaultTeam(name, btn) {
+  if (players.includes(name)) {
+    // Remove se já estiver
+    players.splice(players.indexOf(name), 1);
+    btn.classList.remove("selected");
+  } else {
+    if (players.length >= 8) { alert("Máximo de 8 duplas."); return; }
+    players.push(name);
+    btn.classList.add("selected");
+  }
+  renderScoreBoardSetup();
+  toggleBtnJogar();
+  saveGame();
+}
+
+// ─── SALVAR LOCAL ────────────────────────────────────────
 function saveGame() {
   const target = document.getElementById("target").value;
   localStorage.setItem("canastra", JSON.stringify({ players, rounds, target, gameStarted }));
 }
- 
-// ─── ADICIONAR JOGADOR ───────────────────────────────────
+
+// ─── ADICIONAR JOGADOR MANUAL ────────────────────────────
 function addPlayer() {
   const input = document.getElementById("name");
   const name  = input.value.trim();
   if (!name) { input.focus(); return; }
   if (players.length >= 8) { alert("Máximo de 8 jogadores/duplas."); return; }
+  if (players.includes(name)) { alert("Essa dupla já foi adicionada."); return; }
   players.push(name);
   input.value = "";
   input.focus();
   renderScoreBoardSetup();
   toggleBtnJogar();
   saveGame();
+  // Atualiza visual dos botões default
+  syncDefaultButtons();
 }
- 
+
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("name").addEventListener("keydown", e => {
     if (e.key === "Enter") addPlayer();
   });
 });
- 
-// Mostra botão Jogar quando tiver pelo menos 2 jogadores e pontuação preenchida
+
+function syncDefaultButtons() {
+  document.querySelectorAll(".btn-default-team").forEach(btn => {
+    btn.classList.toggle("selected", players.includes(btn.textContent));
+  });
+}
+
 function toggleBtnJogar() {
   const target = document.getElementById("target").value;
-  const show = players.length >= 2 && target;
+  const show   = players.length >= 2 && target;
   document.getElementById("btn-jogar-section").style.display = show ? "block" : "none";
- 
-  // Também observa mudança no campo target
   document.getElementById("target").oninput = () => {
     const t = document.getElementById("target").value;
     document.getElementById("btn-jogar-section").style.display =
       (players.length >= 2 && t) ? "block" : "none";
   };
 }
- 
-// Placar no setup (sem pontuação, só nomes)
+
 function renderScoreBoardSetup() {
   const div = document.getElementById("scoreBoard-setup");
   div.innerHTML = "";
@@ -80,42 +173,43 @@ function renderScoreBoardSetup() {
     `;
     div.appendChild(card);
   });
+  syncDefaultButtons();
 }
- 
+
 function removePlayer(i) {
   players.splice(i, 1);
   renderScoreBoardSetup();
   toggleBtnJogar();
   saveGame();
+  syncDefaultButtons();
 }
- 
+
 // ─── INICIAR JOGO ────────────────────────────────────────
 function startGame() {
   const target = document.getElementById("target").value;
   if (!target) { alert("Preencha a pontuação para vencer."); return; }
-  if (players.length < 2) { alert("Adicione pelo menos 2 jogadores."); return; }
+  if (players.length < 2) { alert("Adicione pelo menos 2 duplas."); return; }
   gameStarted = true;
   saveGame();
   showGameSection();
 }
- 
+
 function showGameSection() {
   document.getElementById("setup-section").style.display = "none";
   document.getElementById("game-section").style.display  = "block";
   renderScoreBoard();
   renderRounds();
 }
- 
+
 function showSetupSection() {
   document.getElementById("setup-section").style.display = "block";
   document.getElementById("game-section").style.display  = "none";
 }
- 
+
 // ─── MODAL DE RODADA ─────────────────────────────────────
 function openRoundModal() {
   const container = document.getElementById("round-modal-inputs");
   container.innerHTML = "";
- 
   players.forEach((p, i) => {
     const block = document.createElement("div");
     block.className = "round-player-block";
@@ -143,26 +237,24 @@ function openRoundModal() {
       document.getElementById(`${tipo}_${i}`).addEventListener("input", () => updateTotal(i));
     });
   });
- 
   document.getElementById("round-modal-title").textContent = `Rodada ${rounds.length + 1}`;
   document.getElementById("round-overlay").classList.remove("hidden");
- 
   setTimeout(() => {
     const first = document.getElementById("saida_0");
     if (first) { first.focus(); first.select(); }
   }, 150);
 }
- 
+
 function updateTotal(i) {
   const saida  = parseInt(document.getElementById(`saida_${i}`).value)  || 0;
   const cartas = parseInt(document.getElementById(`cartas_${i}`).value) || 0;
   document.getElementById(`total_${i}`).textContent = saida + cartas;
 }
- 
+
 function closeRoundModal() {
   document.getElementById("round-overlay").classList.add("hidden");
 }
- 
+
 function confirmarRodada() {
   const round = players.map((_, i) => {
     const saida  = parseInt(document.getElementById(`saida_${i}`).value)  || 0;
@@ -176,14 +268,14 @@ function confirmarRodada() {
   checkWinner();
   saveGame();
 }
- 
+
 // ─── TOTAIS ──────────────────────────────────────────────
 function recalculateScores() {
   scores = players.map(() => 0);
   rounds.forEach(r => r.forEach((v, i) => scores[i] += v));
   renderScoreBoard();
 }
- 
+
 // ─── PLACAR ──────────────────────────────────────────────
 function renderScoreBoard() {
   const div = document.getElementById("scoreBoard");
@@ -197,14 +289,14 @@ function renderScoreBoard() {
     div.appendChild(card);
   });
 }
- 
+
 // ─── LISTA DE RODADAS ────────────────────────────────────
 function renderRounds() {
   const list = document.getElementById("rounds");
   if (!list) return;
   list.innerHTML = "";
   rounds.forEach((r, i) => {
-    const li = document.createElement("li");
+    const li  = document.createElement("li");
     const str = players.map((p, j) => `${escHtml(p)}: ${r[j]}`).join("  ·  ");
     li.innerHTML = `<span><strong>R${i+1}</strong>  ${str}</span>
       <button class="btn-delete" onclick="deleteRound(${i})">Excluir</button>`;
@@ -213,14 +305,14 @@ function renderRounds() {
   const sec = document.getElementById("rounds-section");
   if (sec) sec.style.display = rounds.length > 0 ? "block" : "none";
 }
- 
+
 function deleteRound(i) {
   rounds.splice(i, 1);
   recalculateScores();
   renderRounds();
   saveGame();
 }
- 
+
 // ─── VERIFICAR VENCEDOR ──────────────────────────────────
 function checkWinner() {
   const target = parseInt(document.getElementById("target").value);
@@ -228,138 +320,40 @@ function checkWinner() {
   if (!scores.some(s => s >= target)) return;
   const max    = Math.max(...scores);
   const winner = players[scores.indexOf(max)];
+  const loser  = players.find((_, i) => scores[i] !== max) || "";
   try { winSound.play(); } catch(e) {}
-  saveHistory(winner, max);
+  saveHistory(winner, loser, max, target);
   showWinnerModal(winner, max, target);
 }
- 
-// ─── MODAL VENCEDOR ──────────────────────────────────────
-function createWinnerModal() {
-  const overlay = document.createElement("div");
-  overlay.className = "modal-overlay hidden";
-  overlay.id = "winner-overlay";
-  overlay.innerHTML = `
-    <div class="modal">
-      <div class="modal-trophy">🏆</div>
-      <p class="modal-title">Vencedor da partida</p>
-      <p class="modal-winner" id="modal-winner-name"></p>
-      <p class="modal-score" id="modal-winner-score"></p>
-      <div class="modal-divider"></div>
-      <button class="btn btn-primary" id="btn-rematch-same" onclick="rematchSameScore()">🔁 Mesmas duplas, jogar até 0</button>
-      <button class="btn btn-warning" onclick="rematchNewScore()">🎯 Mesmas duplas, alterar meta de pontos</button>
-      <button class="btn btn-new-players" onclick="newPlayersGame()">👥 Novos jogadores</button>
-      <button class="btn btn-ghost" onclick="verPlacar()">👁 Ver placar final</button>
-    </div>
-  `;
-  document.body.appendChild(overlay);
-}
- 
-function showWinnerModal(name, score, target) {
-  document.getElementById("modal-winner-name").textContent  = name;
-  document.getElementById("modal-winner-score").textContent = `${score} pontos — meta era ${target}`;
-  // Atualiza botão com a meta da partida
-  const btn = document.getElementById("btn-rematch-same");
-  if (btn) btn.textContent = `🔁 Mesmas duplas, jogar até ${target}`;
-  document.getElementById("winner-overlay").classList.remove("hidden");
-}
- 
-function fecharModal() {
-  const el = document.getElementById("winner-overlay");
-  if (el) el.classList.add("hidden");
-}
- 
-function verPlacar() {
-  fecharModal();
-  document.getElementById("postgame-section").style.display = "block";
-  window.scrollTo({ top: 0, behavior: "smooth" });
-}
- 
-// ─── REMATCH MESMA PONTUAÇÃO ─────────────────────────────
-function rematchSameScore() {
-  fecharModal();
-  document.getElementById("postgame-section").style.display = "none";
-  document.getElementById("new-score-section").style.display = "none";
-  rounds = [];
-  scores = players.map(() => 0);
-  gameStarted = true;
-  saveGame();
-  renderScoreBoard();
-  renderRounds();
-}
- 
-// ─── REMATCH PONTUAÇÃO DIFERENTE ─────────────────────────
-function rematchNewScore() {
-  fecharModal();
-  document.getElementById("postgame-section").style.display = "block";
-  document.getElementById("new-score-section").style.display = "block";
-  document.getElementById("new-target").focus();
-  window.scrollTo({ top: 0, behavior: "smooth" });
-}
- 
-function rematchWithNewScore() {
-  const newTarget = document.getElementById("new-target").value;
-  if (!newTarget) { alert("Preencha a nova pontuação."); return; }
-  document.getElementById("target").value = newTarget;
-  document.getElementById("new-target").value = "";
-  document.getElementById("postgame-section").style.display = "none";
-  document.getElementById("new-score-section").style.display = "none";
-  rounds = [];
-  scores = players.map(() => 0);
-  gameStarted = true;
-  saveGame();
-  renderScoreBoard();
-  renderRounds();
-}
- 
-// ─── NOVOS JOGADORES ─────────────────────────────────────
-function newPlayersGame() {
-  fecharModal();
-  players = [];
-  rounds  = [];
-  scores  = [];
-  gameStarted = false;
-  localStorage.removeItem("canastra");
-  document.getElementById("target").value = "";
-  document.getElementById("name").value   = "";
-  document.getElementById("scoreBoard-setup").innerHTML = "";
-  document.getElementById("postgame-section").style.display = "none";
-  document.getElementById("new-score-section").style.display = "none";
-  showSetupSection();
-  toggleBtnJogar();
-}
- 
-// ─── REINICIAR ───────────────────────────────────────────
-function resetGame() {
-  if (!confirm("Reiniciar o jogo? Tudo será apagado.")) return;
-  fecharModal();
-  players = [];
-  rounds  = [];
-  scores  = [];
-  gameStarted = false;
-  localStorage.removeItem("canastra");
-  document.getElementById("target").value = "";
-  document.getElementById("name").value   = "";
-  document.getElementById("scoreBoard-setup").innerHTML = "";
-  document.getElementById("postgame-section").style.display = "none";
-  document.getElementById("new-score-section").style.display = "none";
-  showSetupSection();
-  toggleBtnJogar();
-}
- 
-// ─── HISTÓRICO ───────────────────────────────────────────
-function saveHistory(name, score) {
-  const history = JSON.parse(localStorage.getItem("history") || "[]");
-  history.push({ name, score, date: new Date().toLocaleString("pt-BR") });
-  localStorage.setItem("history", JSON.stringify(history));
+
+// ─── HISTÓRICO FIREBASE ──────────────────────────────────
+async function saveHistory(winner, loser, score, target) {
+  const entry = {
+    winner,
+    loser,
+    score,
+    target,
+    players: [...players],
+    scores:  [...scores],
+    date: new Date().toLocaleString("pt-BR"),
+    ts:   Date.now()
+  };
+  // Salva no Firebase
+  await fbPush("partidas", entry);
+  // Salva local como cache
+  const local = JSON.parse(localStorage.getItem("history") || "[]");
+  local.push(entry);
+  localStorage.setItem("history", JSON.stringify(local));
   renderHistory();
 }
- 
-function clearHistory() {
-  if (!confirm("Apagar todo o histórico de partidas?")) return;
-  localStorage.removeItem("history");
-  renderHistory();
+
+async function loadHistoryFromFirebase() {
+  const data = await fbGet("partidas");
+  if (!data) return [];
+  return Object.entries(data).map(([id, val]) => ({ id, ...val }))
+    .sort((a, b) => (b.ts || 0) - (a.ts || 0));
 }
- 
+
 function renderHistory() {
   const list    = document.getElementById("history");
   const history = JSON.parse(localStorage.getItem("history") || "[]");
@@ -368,13 +362,319 @@ function renderHistory() {
     list.innerHTML = '<li class="empty-msg">Nenhuma partida finalizada ainda.</li>';
     return;
   }
-  history.slice().reverse().forEach(h => {
+  history.slice().reverse().slice(0, 5).forEach(h => {
     const li = document.createElement("li");
-    li.innerHTML = `<strong>${escHtml(h.name)}</strong> — ${h.score} pts<br><small>${h.date}</small>`;
+    li.innerHTML = `<strong>${escHtml(h.winner)}</strong> venceu — ${h.score} pts<br><small>${h.date}</small>`;
     list.appendChild(li);
   });
 }
- 
+
+async function clearHistory() {
+  if (!confirm("Apagar todo o histórico de partidas? Isso também apagará do Firebase.")) return;
+  await fbDelete("partidas");
+  localStorage.removeItem("history");
+  renderHistory();
+  closeAdminModal();
+}
+
+// ─── MODAL HISTÓRICO DETALHADO ───────────────────────────
+function createHistoryModal() {
+  if (document.getElementById("history-overlay")) return;
+  const overlay = document.createElement("div");
+  overlay.className = "modal-overlay hidden";
+  overlay.id = "history-overlay";
+  overlay.innerHTML = `
+    <div class="modal modal-history">
+      <p class="modal-title" style="font-size:18px;font-weight:700;color:#f8fafc;margin-bottom:16px">📊 Histórico de Partidas</p>
+
+      <div class="history-filter">
+        <p class="card-label">Filtrar por dupla</p>
+        <div class="history-filter-row">
+          <select id="filter-team1" class="history-select">
+            <option value="">Todas as duplas</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="history-stats" class="history-stats"></div>
+      <div id="history-modal-list" class="history-modal-list"></div>
+
+      <div class="modal-divider" style="margin-top:12px"></div>
+      <button class="btn btn-ghost" onclick="closeHistoryModal()" style="margin-top:8px">Fechar</button>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  document.getElementById("filter-team1").addEventListener("change", renderHistoryModal);
+}
+
+async function openHistoryModal() {
+  const overlay = document.getElementById("history-overlay");
+  overlay.classList.remove("hidden");
+
+  // Carrega do Firebase
+  const partidas = await loadHistoryFromFirebase();
+
+  // Popula o select com todas as duplas encontradas
+  const teams = new Set();
+  partidas.forEach(p => {
+    if (p.players) p.players.forEach(t => teams.add(t));
+    else { if (p.winner) teams.add(p.winner); if (p.loser) teams.add(p.loser); }
+  });
+
+  // Adiciona defaults sempre
+  DEFAULT_TEAMS.forEach(t => teams.add(t));
+
+  const sel = document.getElementById("filter-team1");
+  sel.innerHTML = '<option value="">Todas as duplas</option>';
+  [...teams].sort().forEach(t => {
+    const opt = document.createElement("option");
+    opt.value = t; opt.textContent = t;
+    sel.appendChild(opt);
+  });
+
+  // Guarda no window para uso posterior
+  window._partidas = partidas;
+  renderHistoryModal();
+}
+
+function renderHistoryModal() {
+  const partidas  = window._partidas || [];
+  const filterTeam = document.getElementById("filter-team1").value;
+
+  let filtered = partidas;
+  if (filterTeam) {
+    filtered = partidas.filter(p => {
+      const inPlayers = p.players && p.players.includes(filterTeam);
+      const isWinner  = p.winner === filterTeam;
+      const isLoser   = p.loser  === filterTeam;
+      return inPlayers || isWinner || isLoser;
+    });
+  }
+
+  // Stats por dupla
+  const statsDiv = document.getElementById("history-stats");
+  if (filterTeam) {
+    const wins   = filtered.filter(p => p.winner === filterTeam).length;
+    const losses = filtered.filter(p => p.loser  === filterTeam || (p.players && p.players.includes(filterTeam) && p.winner !== filterTeam)).length;
+    const total  = filtered.length;
+    statsDiv.innerHTML = `
+      <div class="history-stats-box">
+        <div class="stat-item"><span class="stat-num" style="color:#22c55e">${wins}</span><span class="stat-label">Vitórias</span></div>
+        <div class="stat-item"><span class="stat-num" style="color:#ef4444">${losses}</span><span class="stat-label">Derrotas</span></div>
+        <div class="stat-item"><span class="stat-num">${total}</span><span class="stat-label">Partidas</span></div>
+        <div class="stat-item"><span class="stat-num" style="color:#f59e0b">${total > 0 ? Math.round(wins/total*100) : 0}%</span><span class="stat-label">Aproveit.</span></div>
+      </div>
+    `;
+  } else {
+    // Ranking geral
+    const wins = {};
+    partidas.forEach(p => {
+      if (!p.winner) return;
+      wins[p.winner] = (wins[p.winner] || 0) + 1;
+    });
+    const ranking = Object.entries(wins).sort((a, b) => b[1] - a[1]);
+    statsDiv.innerHTML = ranking.length > 0 ? `
+      <div class="history-ranking">
+        <p class="card-label" style="margin-bottom:8px">🏆 Ranking geral</p>
+        ${ranking.map(([name, w], i) => `
+          <div class="ranking-row">
+            <span class="ranking-pos">${i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i+1}º`}</span>
+            <span class="ranking-name">${escHtml(name)}</span>
+            <span class="ranking-wins">${w} ${w === 1 ? "vitória" : "vitórias"}</span>
+          </div>
+        `).join("")}
+      </div>
+    ` : "";
+  }
+
+  // Lista de partidas
+  const list = document.getElementById("history-modal-list");
+  if (filtered.length === 0) {
+    list.innerHTML = '<p class="empty-msg" style="padding:12px 0">Nenhuma partida encontrada.</p>';
+    return;
+  }
+  list.innerHTML = filtered.map(p => `
+    <div class="history-item">
+      <div class="history-item-winner">🏆 ${escHtml(p.winner || "—")}</div>
+      ${p.players && p.players.length > 1 ? `<div class="history-item-sub">${p.players.map((pl, i) => `${escHtml(pl)}: ${p.scores ? p.scores[i] : "?"}`).join("  ·  ")}</div>` : ""}
+      <div class="history-item-date">${p.date || ""}</div>
+    </div>
+  `).join("");
+}
+
+function closeHistoryModal() {
+  document.getElementById("history-overlay").classList.add("hidden");
+}
+
+// ─── MODAL ADMIN ─────────────────────────────────────────
+function createAdminModal() {
+  if (document.getElementById("admin-overlay")) return;
+  const overlay = document.createElement("div");
+  overlay.className = "modal-overlay hidden";
+  overlay.id = "admin-overlay";
+  overlay.innerHTML = `
+    <div class="modal">
+      <p class="modal-title" style="font-size:18px;font-weight:700;color:#f8fafc;margin-bottom:4px">⚙️ Administração</p>
+      <p style="font-size:13px;color:#64748b;margin-bottom:20px">Gerencie os dados do Firebase</p>
+
+      <div id="admin-firebase-list" style="margin-bottom:12px"></div>
+
+      <button class="btn btn-danger" onclick="clearHistory()" style="margin-bottom:8px;margin-top:4px">
+        🗑 Limpar todo o histórico
+      </button>
+      <div class="modal-divider"></div>
+      <button class="btn btn-ghost" onclick="closeAdminModal()" style="margin-top:8px">Fechar</button>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+}
+
+async function openAdminModal() {
+  document.getElementById("admin-overlay").classList.remove("hidden");
+  const listDiv = document.getElementById("admin-firebase-list");
+  listDiv.innerHTML = '<p style="font-size:13px;color:#64748b">Carregando do Firebase...</p>';
+
+  const partidas = await loadHistoryFromFirebase();
+  window._partidas = partidas;
+
+  if (partidas.length === 0) {
+    listDiv.innerHTML = '<p class="empty-msg">Nenhuma partida no Firebase ainda.</p>';
+    return;
+  }
+
+  listDiv.innerHTML = `
+    <p class="card-label" style="margin-bottom:8px">Partidas salvas (${partidas.length})</p>
+    <div class="admin-list">
+      ${partidas.map(p => `
+        <div class="admin-item">
+          <div class="admin-item-info">
+            <span style="color:#22c55e;font-weight:600">${escHtml(p.winner || "?")}</span>
+            <span style="color:#64748b;font-size:12px"> — ${p.date || ""}</span>
+          </div>
+          <button class="btn-delete" onclick="deletePartida('${p.id}')">Excluir</button>
+        </div>
+      `).join("")}
+    </div>
+  `;
+}
+
+async function deletePartida(id) {
+  if (!confirm("Excluir esta partida?")) return;
+  await fbDelete(`partidas/${id}`);
+  // Atualiza local
+  const local = JSON.parse(localStorage.getItem("history") || "[]");
+  localStorage.setItem("history", JSON.stringify(local));
+  renderHistory();
+  openAdminModal(); // Recarrega a lista
+}
+
+function closeAdminModal() {
+  document.getElementById("admin-overlay").classList.add("hidden");
+}
+
+// ─── MODAL VENCEDOR ──────────────────────────────────────
+function createWinnerModal() {
+  if (document.getElementById("winner-overlay")) return;
+  const overlay = document.createElement("div");
+  overlay.className = "modal-overlay hidden";
+  overlay.id = "winner-overlay";
+  overlay.innerHTML = `
+    <div class="modal">
+      <div class="modal-trophy">🏆</div>
+      <p class="modal-title">Vencedor da partida</p>
+      <p class="modal-winner" id="modal-winner-name"></p>
+      <p class="modal-score"  id="modal-winner-score"></p>
+      <div class="modal-divider"></div>
+      <button class="btn btn-primary" id="btn-rematch-same" onclick="rematchSameScore()">🔁 Mesmas duplas, jogar até 0</button>
+      <button class="btn btn-warning" onclick="rematchNewScore()">🎯 Mesmas duplas, alterar meta</button>
+      <button class="btn btn-new-players" onclick="newPlayersGame()">👥 Novos jogadores</button>
+      <button class="btn btn-ghost" onclick="verPlacar()">👁 Ver placar final</button>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+}
+
+function showWinnerModal(name, score, target) {
+  document.getElementById("modal-winner-name").textContent  = name;
+  document.getElementById("modal-winner-score").textContent = `${score} pontos — meta era ${target}`;
+  const btn = document.getElementById("btn-rematch-same");
+  if (btn) btn.textContent = `🔁 Mesmas duplas, jogar até ${target}`;
+  document.getElementById("winner-overlay").classList.remove("hidden");
+}
+
+function fecharModal() {
+  const el = document.getElementById("winner-overlay");
+  if (el) el.classList.add("hidden");
+}
+
+function verPlacar() {
+  fecharModal();
+  document.getElementById("postgame-section").style.display = "block";
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+// ─── REMATCH ─────────────────────────────────────────────
+function rematchSameScore() {
+  fecharModal();
+  document.getElementById("postgame-section").style.display = "none";
+  document.getElementById("new-score-section").style.display = "none";
+  rounds = []; scores = players.map(() => 0);
+  gameStarted = true; saveGame(); renderScoreBoard(); renderRounds();
+}
+
+function rematchNewScore() {
+  fecharModal();
+  document.getElementById("postgame-section").style.display = "block";
+  document.getElementById("new-score-section").style.display = "block";
+  document.getElementById("new-target").focus();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function rematchWithNewScore() {
+  const newTarget = document.getElementById("new-target").value;
+  if (!newTarget) { alert("Preencha a nova pontuação."); return; }
+  document.getElementById("target").value = newTarget;
+  document.getElementById("new-target").value = "";
+  document.getElementById("postgame-section").style.display = "none";
+  document.getElementById("new-score-section").style.display = "none";
+  rounds = []; scores = players.map(() => 0);
+  gameStarted = true; saveGame(); renderScoreBoard(); renderRounds();
+}
+
+// ─── NOVOS JOGADORES ─────────────────────────────────────
+function newPlayersGame() {
+  fecharModal();
+  players = []; rounds = []; scores = [];
+  gameStarted = false;
+  localStorage.removeItem("canastra");
+  document.getElementById("target").value = "";
+  document.getElementById("name").value   = "";
+  document.getElementById("scoreBoard-setup").innerHTML = "";
+  document.getElementById("postgame-section").style.display = "none";
+  document.getElementById("new-score-section").style.display = "none";
+  showSetupSection();
+  renderDefaultTeams();
+  toggleBtnJogar();
+}
+
+// ─── REINICIAR ───────────────────────────────────────────
+function resetGame() {
+  if (!confirm("Reiniciar o jogo? Tudo será apagado.")) return;
+  fecharModal();
+  players = []; rounds = []; scores = [];
+  gameStarted = false;
+  localStorage.removeItem("canastra");
+  document.getElementById("target").value = "";
+  document.getElementById("name").value   = "";
+  document.getElementById("scoreBoard-setup").innerHTML = "";
+  document.getElementById("postgame-section").style.display = "none";
+  document.getElementById("new-score-section").style.display = "none";
+  showSetupSection();
+  renderDefaultTeams();
+  toggleBtnJogar();
+}
+
 // ─── UTILS ───────────────────────────────────────────────
 function escHtml(str) {
   return String(str)
