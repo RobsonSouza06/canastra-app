@@ -372,7 +372,9 @@ function renderHistory() {
 async function clearHistory() {
   if (!confirm("Apagar todo o histórico de partidas? Isso também apagará do Firebase.")) return;
   await fbDelete("partidas");
+  // Limpa localStorage e memória imediatamente
   localStorage.removeItem("history");
+  window._partidas = [];
   renderHistory();
   closeAdminModal();
 }
@@ -678,11 +680,13 @@ async function openAdminModal() {
 async function deletePartida(id) {
   if (!confirm("Excluir esta partida?")) return;
   await fbDelete(`partidas/${id}`);
-  // Atualiza local
-  const local = JSON.parse(localStorage.getItem("history") || "[]");
-  localStorage.setItem("history", JSON.stringify(local));
+
+  // Rebusca do Firebase e sincroniza localStorage + tela imediatamente
+  const atualizadas = await loadHistoryFromFirebase();
+  window._partidas = atualizadas;
+  localStorage.setItem("history", JSON.stringify(atualizadas));
   renderHistory();
-  openAdminModal(); // Recarrega a lista
+  openAdminModal();
 }
 
 function closeAdminModal() {
