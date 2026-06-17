@@ -2,7 +2,7 @@
 const FIREBASE_URL = "https://canastra-score-default-rtdb.firebaseio.com";
 
 // ─── DUPLAS DEFAULT ──────────────────────────────────────
-const DEFAULT_TEAMS = ["Jango/Rosane", "Robson/Jenny"];
+const DEFAULT_TEAMS = ["Robson/Jenny", "Jango/Rosane"];
 
 // ─── ESTADO DO JOGO ──────────────────────────────────────
 let players     = [];
