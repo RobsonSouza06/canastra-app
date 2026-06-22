@@ -2,7 +2,7 @@
 const FIREBASE_URL = "https://canastra-score-default-rtdb.firebaseio.com";
 
 // ─── DUPLAS DEFAULT ──────────────────────────────────────
-const DEFAULT_TEAMS = ["Robson/Jenny", "Jango/Rosane"];
+const DEFAULT_TEAMS = ["Jango/Rosane", "Robson/Jenny"];
 
 // ─── ESTADO DO JOGO ──────────────────────────────────────
 let players     = [];
@@ -390,7 +390,6 @@ function createHistoryModal() {
       <p class="modal-title" style="font-size:18px;font-weight:700;color:#f8fafc;margin-bottom:4px">📊 Histórico de Partidas</p>
       <p style="font-size:13px;color:#64748b;margin-bottom:16px">Selecione as duas duplas para ver o confronto</p>
 
-      <!-- SELEÇÃO DE DUPLAS -->
       <div class="confronto-selects">
         <div class="confronto-select-wrap">
           <p class="card-label" style="margin-bottom:6px">Dupla 1</p>
@@ -407,13 +406,10 @@ function createHistoryModal() {
         </div>
       </div>
 
-      <!-- PLACAR DO CONFRONTO -->
       <div id="history-confronto" class="history-confronto" style="display:none"></div>
 
-      <!-- RANKING GERAL (quando nenhuma dupla selecionada) -->
       <div id="history-ranking-geral"></div>
 
-      <!-- LISTA DE PARTIDAS -->
       <div id="history-modal-list" class="history-modal-list"></div>
 
       <div class="modal-divider" style="margin-top:12px"></div>
@@ -497,7 +493,6 @@ function renderHistoryModal() {
     const lider  = wins1 > wins2 ? team1 : wins2 > wins1 ? team2 : null;
 
     confrontoDiv.innerHTML = `
-      <!-- PLACAR GRANDE -->
       <div class="confronto-placar">
         <div class="confronto-time ${wins1 >= wins2 ? 'confronto-lider' : ''}">
           <div class="confronto-nome">${escHtml(team1)}</div>
@@ -512,7 +507,6 @@ function renderHistoryModal() {
         </div>
       </div>
 
-      <!-- BARRA DE PROGRESSO -->
       ${total > 0 ? `
       <div class="confronto-barra-wrap">
         <div class="confronto-barra">
@@ -525,7 +519,6 @@ function renderHistoryModal() {
         </div>
       </div>` : ""}
 
-      <!-- LÍDER -->
       ${lider ? `<div class="confronto-lider-badge">🏆 ${escHtml(lider)} está na frente!</div>` :
         total > 0 ? `<div class="confronto-lider-badge" style="background:#334155;color:#94a3b8">🤝 Empate técnico!</div>` : ""}
     `;
@@ -683,7 +676,7 @@ async function deletePartida(id) {
 
   // Rebusca do Firebase e sincroniza localStorage + tela imediatamente
   const atualizadas = await loadHistoryFromFirebase();
-  window._partidas = atualizadas;
+  window._partidas = updated;
   localStorage.setItem("history", JSON.stringify(atualizadas));
   renderHistory();
   openAdminModal();
@@ -718,8 +711,19 @@ function createWinnerModal() {
 function showWinnerModal(name, score, target) {
   document.getElementById("modal-winner-name").textContent  = name;
   document.getElementById("modal-winner-score").textContent = `${score} pontos — meta era ${target}`;
-  const btn = document.getElementById("btn-rematch-same");
-  if (btn) btn.textContent = `🔁 Mesmas duplas, jogar até ${target}`;
+  
+  // Texto unificado que será aplicado em ambos os botões
+  const textoRevanche = `🔁 Mesmas duplas, jogar até ${target}`;
+  
+  // 1. Atualiza o botão interno do Modal
+  const btnModal = document.getElementById("btn-rematch-same");
+  if (btnModal) btnModal.textContent = textoRevanche;
+  
+  // 2. Procura e atualiza o botão correspondente que fica dentro do HTML do postgame-section
+  const btnPostGame = document.querySelector("#postgame-section .btn-primary") || 
+                      document.querySelector("#postgame-section button[onclick='rematchSameScore()']");
+  if (btnPostGame) btnPostGame.textContent = textoRevanche;
+
   document.getElementById("winner-overlay").classList.remove("hidden");
 }
 
@@ -728,6 +732,7 @@ function fecharModal() {
   if (el) el.classList.add("hidden");
 }
 
+// Modificado para garantir que o postgame-section receba o foco correto sem conflito de texto
 function verPlacar() {
   fecharModal();
   document.getElementById("postgame-section").style.display = "block";
@@ -751,6 +756,7 @@ function rematchNewScore() {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
+// Modificado para corrigir o bug de digitação do 'target' original
 function rematchWithNewScore() {
   const newTarget = document.getElementById("new-target").value;
   if (!newTarget) { alert("Preencha a nova pontuação."); return; }
